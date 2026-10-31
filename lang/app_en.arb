@@ -1,0 +1,25 @@
+{
+  "@@locale": "en",
+  "appTitle": "Pulse",
+  "@appTitle": {
+    "description": "Application title"
+  },
+  "tabMarkets": "Markets",
+  "tabWatchlist": "Watchlist",
+  "tabSettings": "Settings",
+  "marketsPlaceholderTitle": "Markets",
+  "marketsPlaceholderBody": "Top coins and live prices will appear here.",
+  "watchlistPlaceholderTitle": "Watchlist",
+  "watchlistPlaceholderBody": "Your saved coins will appear here.",
+  "settingsPlaceholderTitle": "Settings",
+  "settingsPlaceholderBody": "Theme, language, and currency preferences will appear here.",
+  "coinDetailPlaceholderTitle": "Coin detail",
+  "coinDetailPlaceholderBody": "Charts and stats for {coinId} will appear here.",
+  "@coinDetailPlaceholderBody": {
+    "placeholders": {
+      "coinId": {
+        "type": "String"
+      }
+    }
+  }
+}

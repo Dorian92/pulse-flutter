@@ -11,17 +11,17 @@
 | **Watchlist** | Saved coins with live prices; swipe to remove with undo; drag to reorder; persisted locally |
 | **Settings** | Theme (system / light / dark), language (EN / Serbian Latin), display currency (USD / EUR); persisted |
 
-## Tech stack (planned)
+## Tech stack
 
-- **Flutter** (stable channel), **Dart 3**
-- **State:** `flutter_bloc`, `bloc_concurrency`
+- **Flutter** 3.35+ (stable channel), **Dart 3**
+- **State:** `flutter_bloc`, `bloc_concurrency` (from step 2 onward)
 - **Navigation:** `go_router`
 - **DI:** `get_it` (composition root only); constructor injection elsewhere
 - **Network:** `http`, `web_socket_channel`
 - **Models:** `json_serializable`, `equatable`
 - **Charts:** `fl_chart` (see [architecture](docs/architecture.md))
 - **Storage:** `hive` + `hive_flutter` (see [caching](docs/caching.md))
-- **L10n:** ARB (`flutter gen-l10n`), EN + Serbian (Latin)
+- **L10n:** ARB under `lang/` (`app_en.arb`, `app_sr.arb`, `app_sr_Latn.arb`), generated to `lib/l10n/`
 - **Tests:** `flutter_test`, `bloc_test`, `mocktail`
 
 ## Documentation
@@ -47,32 +47,52 @@ _GIF and screenshots will be added after the UI milestone (roadmap step 7)._
 
 ## Getting started
 
-<!-- TBD: after step 1 -->
-```text
-# Instructions pending project scaffold (roadmap step 1).
-# Expected shape:
-#   flutter pub get
-#   dart run build_runner build --delete-conflicting-outputs
-#   flutter run
+Requires [Flutter stable](https://docs.flutter.dev/get-started/install) (CI pins **3.35.7**).
+
+```bash
+flutter pub get
+flutter gen-l10n   # also runs via `flutter pub get` when ARBs change
+flutter run
 ```
 
-### Configuration (planned)
+Run tests and analysis locally (matches CI):
+
+```bash
+dart format lib test
+flutter analyze
+flutter test --coverage
+bash tool/check_generated.sh
+```
+
+Application ID: **`com.doriansabo.pulse`** (Android/iOS).
+
+### Configuration
 
 | Variable | Purpose |
 |----------|---------|
-| `COINGECKO_DEMO_API_KEY` | Passed at build/run time (e.g. `--dart-define`); never committed |
+| `COINGECKO_DEMO_API_KEY` | Passed at build/run time (e.g. `--dart-define=COINGECKO_DEMO_API_KEY=...`); required from roadmap step 3; never committed |
 
 Binance market data endpoints used by Pulse do not require a key.
 
-## CI (planned)
+## CI
 
-GitHub Actions: `dart format --set-exit-if-changed`, `flutter analyze` (strict), `flutter test` — see [roadmap](docs/roadmap.md).
+GitHub Actions (`.github/workflows/ci.yml`) on every pull request and push to `main`:
 
-### Testing & localisation (planned)
+- `dart format --set-exit-if-changed lib test`
+- `flutter analyze` (strict `analysis_options.yaml`)
+- `flutter test --coverage` (coverage uploaded as an artifact)
+- `tool/check_generated.sh` — committed `gen-l10n` output (and `build_runner` when added)
+- `flutter build apk --debug` on Ubuntu
 
-- **Tests:** unit (repositories, `PriceStreamService`), `bloc_test` for features, fakes for network and WebSocket; no live Binance in default CI.
-- **L10n:** ARB files under `lib/l10n/` (`app_en.arb`, `app_sr.arb` or `sr_Latn`), `flutter gen-l10n`, locale from settings cubit.
+On **push to `main` only**, a macOS job runs `flutter build ios --no-codesign`.
+
+Dependabot watches pub and GitHub Actions weekly (`.github/dependabot.yml`).
+
+## Testing & localisation
+
+- **Tests:** widget smoke (shell tabs, coin detail route); unit and bloc tests added per roadmap step.
+- **L10n:** English plus Serbian Latin (`sr_Latn`); ARB files in `lang/`. Flutter requires a base `app_sr.arb` fallback when using `app_sr_Latn.arb`.
 
 ## License
 
-TBD (recommend MIT for portfolio use).
+MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Dorian Sabo.
