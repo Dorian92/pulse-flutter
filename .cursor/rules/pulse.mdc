@@ -1,0 +1,16 @@
+---
+description: Pulse Flutter architecture and quality bar
+globs: lib/**,test/**
+alwaysApply: false
+---
+
+# Pulse rules
+
+- Feature-first: `models / repository / bloc / ui` per feature under `lib/markets`, `coin_detail`, `watchlist`, `settings`; shared code in `lib/core`, navigation shell in `lib/shell`.
+- Register dependencies only in `lib/core/di/injection.dart` (get_it). Everywhere else use constructor injection.
+- Blocs talk to repository **interfaces**; return `Result<T>` + `AppFailure`, not raw exceptions to UI.
+- No HTTP/WebSocket in widgets. Realtime only through `PriceStreamService`.
+- No hard-coded user-visible strings (ARB) or colors (theme / `app_colors.dart`).
+- Each PR matches one roadmap step in `docs/roadmap.md` and includes tests listed there.
+- Run `dart format`, `flutter analyze`, `flutter test` before push.
+- Update `docs/` when changing caching, API usage, or realtime behaviour.
