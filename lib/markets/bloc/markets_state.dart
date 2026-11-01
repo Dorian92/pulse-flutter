@@ -15,6 +15,9 @@ final class MarketsState extends Equatable {
     this.visibleCoins = const [],
     this.failure,
     this.refreshFailure,
+    this.realtimeStatus = const RealtimeStatus.offline(),
+    this.liveFlashCoinId,
+    this.liveFlashGeneration = 0,
   });
 
   /// Initial state before first load.
@@ -27,6 +30,7 @@ final class MarketsState extends Equatable {
     String searchQuery = '',
     MarketFilter filter = MarketFilter.all,
     List<MarketCoin> visibleCoins = const [],
+    RealtimeStatus realtimeStatus = const RealtimeStatus.offline(),
   }) : this(
          status: MarketsStatus.loading,
          snapshot: snapshot,
@@ -34,6 +38,7 @@ final class MarketsState extends Equatable {
          searchQuery: searchQuery,
          filter: filter,
          visibleCoins: visibleCoins,
+         realtimeStatus: realtimeStatus,
        );
 
   /// Loaded or stale-loaded state.
@@ -43,6 +48,7 @@ final class MarketsState extends Equatable {
     bool isStale = false,
     String searchQuery = '',
     MarketFilter filter = MarketFilter.all,
+    RealtimeStatus realtimeStatus = const RealtimeStatus.offline(),
   }) : this(
          status: MarketsStatus.loaded,
          snapshot: snapshot,
@@ -50,6 +56,7 @@ final class MarketsState extends Equatable {
          searchQuery: searchQuery,
          filter: filter,
          visibleCoins: visibleCoins,
+         realtimeStatus: realtimeStatus,
        );
 
   /// Full-screen failure when no data to show.
@@ -86,6 +93,15 @@ final class MarketsState extends Equatable {
   /// One-shot error from pull-to-refresh (snackbar).
   final AppFailure? refreshFailure;
 
+  /// Binance WebSocket health for the LIVE header indicator.
+  final RealtimeStatus realtimeStatus;
+
+  /// Coin id that most recently received a live tick.
+  final String? liveFlashCoinId;
+
+  /// Increments on each live tick to retrigger tile flash animation.
+  final int liveFlashGeneration;
+
   /// Cache timestamp for stale banner.
   DateTime? get fetchedAt => snapshot?.fetchedAt;
 
@@ -98,6 +114,9 @@ final class MarketsState extends Equatable {
     List<MarketCoin>? visibleCoins,
     AppFailure? failure,
     AppFailure? refreshFailure,
+    RealtimeStatus? realtimeStatus,
+    String? liveFlashCoinId,
+    int? liveFlashGeneration,
     bool clearFailure = false,
     bool clearRefreshFailure = false,
   }) {
@@ -112,6 +131,9 @@ final class MarketsState extends Equatable {
       refreshFailure: clearRefreshFailure
           ? null
           : refreshFailure ?? this.refreshFailure,
+      realtimeStatus: realtimeStatus ?? this.realtimeStatus,
+      liveFlashCoinId: liveFlashCoinId ?? this.liveFlashCoinId,
+      liveFlashGeneration: liveFlashGeneration ?? this.liveFlashGeneration,
     );
   }
 
@@ -125,5 +147,8 @@ final class MarketsState extends Equatable {
     visibleCoins,
     failure,
     refreshFailure,
+    realtimeStatus,
+    liveFlashCoinId,
+    liveFlashGeneration,
   ];
 }

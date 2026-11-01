@@ -36,3 +36,23 @@ final class MarketsFilterChanged extends MarketsEvent {
   @override
   List<Object?> get props => [filter];
 }
+
+/// Live price tick from [PriceStreamService].
+final class MarketsPriceTickReceived extends MarketsEvent {
+  const MarketsPriceTickReceived(this.tick);
+
+  final PriceTick tick;
+
+  @override
+  List<Object?> get props => [tick];
+}
+
+/// Realtime connection status changed.
+final class MarketsRealtimeStatusChanged extends MarketsEvent {
+  const MarketsRealtimeStatusChanged(this.status);
+
+  final RealtimeStatus status;
+
+  @override
+  List<Object?> get props => [status];
+}

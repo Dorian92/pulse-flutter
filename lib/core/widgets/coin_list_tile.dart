@@ -16,6 +16,7 @@ class CoinListTile extends StatefulWidget {
     this.icon,
     this.compactSparkline = false,
     this.showLiveFlash = false,
+    this.liveFlashToken,
     this.showNoLiveFeedBadge = false,
     this.onTap,
     super.key,
@@ -29,6 +30,7 @@ class CoinListTile extends StatefulWidget {
   final Widget? icon;
   final bool compactSparkline;
   final bool showLiveFlash;
+  final int? liveFlashToken;
   final bool showNoLiveFeedBadge;
   final VoidCallback? onTap;
 
@@ -48,7 +50,15 @@ class _CoinListTileState extends State<CoinListTile> {
   @override
   void didUpdateWidget(CoinListTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.showLiveFlash && !oldWidget.showLiveFlash) {
+    if (widget.liveFlashToken != null &&
+        widget.liveFlashToken != oldWidget.liveFlashToken) {
+      setState(() => _flashVisible = true);
+      Future<void>.delayed(PulseTokens.standard.durationMedium, () {
+        if (mounted) {
+          setState(() => _flashVisible = false);
+        }
+      });
+    } else if (widget.showLiveFlash && !oldWidget.showLiveFlash) {
       setState(() => _flashVisible = true);
       Future<void>.delayed(PulseTokens.standard.durationMedium, () {
         if (mounted) {

@@ -6,7 +6,11 @@ import 'package:pulse/core/connectivity/connectivity_plus_service.dart';
 import 'package:pulse/core/connectivity/connectivity_service.dart';
 import 'package:pulse/core/network/api_client.dart';
 import 'package:pulse/core/network/pulse_http_client.dart';
+import 'package:pulse/core/realtime/binance_price_stream_service.dart';
+import 'package:pulse/core/realtime/price_stream_service.dart';
+import 'package:pulse/core/realtime/realtime_subscription_coordinator.dart';
 import 'package:pulse/core/realtime/symbol_mapper.dart';
+import 'package:pulse/core/realtime/symbol_mapper_loader.dart';
 import 'package:pulse/core/storage/cache_store.dart';
 import 'package:pulse/core/storage/hive_boxes.dart';
 import 'package:pulse/core/time/clock.dart';
@@ -31,6 +35,8 @@ Future<void> configureDependencies({
   CacheStore? cacheStore,
   SymbolMapper? symbolMapper,
   MarketsRepository? marketsRepository,
+  PriceStreamService? priceStreamService,
+  RealtimeSubscriptionCoordinator? subscriptionCoordinator,
 }) async {
   if (!sl.isRegistered<AppConfig>()) {
     sl.registerSingleton<AppConfig>(appConfig ?? const AppConfig());
@@ -69,9 +75,43 @@ Future<void> configureDependencies({
     );
   }
   if (!sl.isRegistered<SymbolMapper>()) {
-    sl.registerSingleton<SymbolMapper>(symbolMapper ?? const SymbolMapper());
+    sl.registerSingleton<SymbolMapper>(symbolMapper ?? SymbolMapper());
   }
+  _registerRealtime(
+    priceStreamService: priceStreamService,
+    subscriptionCoordinator: subscriptionCoordinator,
+  );
   _registerMarkets(marketsRepository: marketsRepository);
+}
+
+void _registerRealtime({
+  PriceStreamService? priceStreamService,
+  RealtimeSubscriptionCoordinator? subscriptionCoordinator,
+}) {
+  if (!sl.isRegistered<PriceStreamService>()) {
+    sl.registerLazySingleton<PriceStreamService>(
+      () =>
+          priceStreamService ??
+          BinancePriceStreamService(config: sl<AppConfig>()),
+      dispose: (service) => service.dispose(),
+    );
+  }
+  if (!sl.isRegistered<RealtimeSubscriptionCoordinator>()) {
+    sl.registerLazySingleton<RealtimeSubscriptionCoordinator>(
+      () =>
+          subscriptionCoordinator ??
+          RealtimeSubscriptionCoordinator(sl<PriceStreamService>()),
+    );
+  }
+  if (!sl.isRegistered<SymbolMapperLoader>()) {
+    sl.registerLazySingleton<SymbolMapperLoader>(
+      () => SymbolMapperLoader(
+        apiClient: sl<ApiClient>(),
+        cacheStore: sl<CacheStore>(),
+        symbolMapper: sl<SymbolMapper>(),
+      ),
+    );
+  }
 }
 
 void _registerMarkets({MarketsRepository? marketsRepository}) {
