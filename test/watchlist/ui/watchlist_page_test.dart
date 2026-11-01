@@ -58,19 +58,19 @@ void main() {
     whenListen(
       watchlistBloc,
       Stream.fromIterable([
-        WatchlistState(
+        const WatchlistState(
           status: WatchlistStatus.loaded,
           entries: [WatchlistEntry(coinId: 'bitcoin', coin: coin)],
           isStale: false,
           isEditing: false,
-          realtimeStatus: const RealtimeStatus.offline(),
+          realtimeStatus: RealtimeStatus.offline(),
         ),
-        WatchlistState(
+        const WatchlistState(
           status: WatchlistStatus.loaded,
-          entries: const [],
+          entries: [],
           isStale: false,
           isEditing: false,
-          realtimeStatus: const RealtimeStatus.offline(),
+          realtimeStatus: RealtimeStatus.offline(),
           pendingUndo: WatchlistUndoPayload(
             coinId: 'bitcoin',
             index: 0,
@@ -78,12 +78,12 @@ void main() {
           ),
         ),
       ]),
-      initialState: WatchlistState(
+      initialState: const WatchlistState(
         status: WatchlistStatus.loaded,
         entries: [WatchlistEntry(coinId: 'bitcoin', coin: coin)],
         isStale: false,
         isEditing: false,
-        realtimeStatus: const RealtimeStatus.offline(),
+        realtimeStatus: RealtimeStatus.offline(),
       ),
     );
 
@@ -99,20 +99,20 @@ void main() {
     whenListen(
       watchlistBloc,
       Stream.fromIterable([
-        WatchlistState(
+        const WatchlistState(
           status: WatchlistStatus.loaded,
           entries: [WatchlistEntry(coinId: 'bitcoin', coin: coin)],
           isStale: false,
           isEditing: true,
-          realtimeStatus: const RealtimeStatus.offline(),
+          realtimeStatus: RealtimeStatus.offline(),
         ),
       ]),
-      initialState: WatchlistState(
+      initialState: const WatchlistState(
         status: WatchlistStatus.loaded,
         entries: [WatchlistEntry(coinId: 'bitcoin', coin: coin)],
         isStale: false,
         isEditing: false,
-        realtimeStatus: const RealtimeStatus.offline(),
+        realtimeStatus: RealtimeStatus.offline(),
       ),
     );
 
@@ -127,20 +127,20 @@ void main() {
     whenListen(
       watchlistBloc,
       Stream.value(
-        WatchlistState(
+        const WatchlistState(
           status: WatchlistStatus.loaded,
-          entries: const [WatchlistEntry.unavailable(coinId: 'ghostcoin')],
+          entries: [WatchlistEntry.unavailable(coinId: 'ghostcoin')],
           isStale: false,
           isEditing: false,
-          realtimeStatus: const RealtimeStatus.offline(),
+          realtimeStatus: RealtimeStatus.offline(),
         ),
       ),
-      initialState: WatchlistState(
+      initialState: const WatchlistState(
         status: WatchlistStatus.loaded,
-        entries: const [WatchlistEntry.unavailable(coinId: 'ghostcoin')],
+        entries: [WatchlistEntry.unavailable(coinId: 'ghostcoin')],
         isStale: false,
         isEditing: false,
-        realtimeStatus: const RealtimeStatus.offline(),
+        realtimeStatus: RealtimeStatus.offline(),
       ),
     );
 

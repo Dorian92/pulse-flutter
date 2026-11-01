@@ -12,7 +12,6 @@ import 'package:pulse/core/widgets/coin_list_tile.dart';
 import 'package:pulse/core/widgets/offline_banner.dart';
 import 'package:pulse/core/widgets/shimmer_skeleton.dart';
 import 'package:pulse/l10n/app_localizations.dart';
-import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/settings/bloc/settings_cubit.dart';
 import 'package:pulse/settings/models/display_currency.dart';
 import 'package:pulse/settings/repository/settings_repository.dart';

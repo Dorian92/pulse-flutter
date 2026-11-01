@@ -235,7 +235,7 @@ class CoinDetailBloc extends Bloc<CoinDetailEvent, CoinDetailState> {
     if (coinId.isEmpty || state.detail == null) {
       return;
     }
-    add(CoinDetailRetryRequested());
+    add(const CoinDetailRetryRequested());
   }
 
   void _onPriceTick(

@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'dart:async';
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,10 +16,10 @@ import 'package:pulse/core/realtime/price_stream_service.dart';
 import 'package:pulse/core/realtime/price_tick.dart';
 import 'package:pulse/core/realtime/realtime_status.dart';
 import 'package:pulse/core/realtime/realtime_subscription_coordinator.dart';
+import 'package:pulse/core/widgets/period_selector.dart';
 import 'package:pulse/settings/models/display_currency.dart';
 import 'package:pulse/settings/models/user_preferences.dart';
 import 'package:pulse/settings/repository/settings_repository.dart';
-import 'package:pulse/core/widgets/period_selector.dart';
 
 import '../../core/realtime/fake_price_stream_service.dart';
 

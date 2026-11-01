@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pulse/core/error/app_failure.dart';
 import 'package:pulse/core/error/result.dart';
-import 'package:pulse/core/realtime/realtime_status.dart';
 import 'package:pulse/core/realtime/price_tick.dart';
+import 'package:pulse/core/realtime/realtime_status.dart';
 import 'package:pulse/core/realtime/realtime_subscription_coordinator.dart';
 import 'package:pulse/core/realtime/symbol_mapper.dart';
 import 'package:pulse/markets/models/market_coin.dart';
@@ -42,7 +42,7 @@ void main() {
 
   WatchlistSnapshot snapshotWithCoin(DateTime fetchedAt) {
     return WatchlistSnapshot(
-      entries: [WatchlistEntry(coinId: 'bitcoin', coin: coin)],
+      entries: [const WatchlistEntry(coinId: 'bitcoin', coin: coin)],
       fetchedAt: fetchedAt,
     );
   }
@@ -149,12 +149,12 @@ void main() {
       );
       return buildBloc();
     },
-    seed: () => WatchlistState(
+    seed: () => const WatchlistState(
       status: WatchlistStatus.loaded,
       entries: [WatchlistEntry(coinId: 'bitcoin', coin: coin)],
       isStale: false,
       isEditing: false,
-      realtimeStatus: const RealtimeStatus.live(),
+      realtimeStatus: RealtimeStatus.live(),
     ),
     act: (bloc) => bloc.add(
       WatchlistPriceTickReceived(
@@ -163,7 +163,7 @@ void main() {
           lastPriceUsdt: 42000,
           lastPriceEur: 39000,
           changePercent24h: 2,
-          eventTime: DateTime.utc(2026, 1, 1),
+          eventTime: DateTime.utc(2026),
         ),
       ),
     ),

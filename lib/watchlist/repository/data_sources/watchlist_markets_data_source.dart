@@ -1,8 +1,8 @@
-import 'package:pulse/core/util/stable_hash.dart';
 import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/network/api_client.dart';
 import 'package:pulse/core/realtime/symbol_mapper.dart';
 import 'package:pulse/core/storage/cache_store.dart';
+import 'package:pulse/core/util/stable_hash.dart';
 import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/markets/repository/data_sources/markets_remote_data_source.dart';
 import 'package:pulse/settings/repository/settings_repository.dart';

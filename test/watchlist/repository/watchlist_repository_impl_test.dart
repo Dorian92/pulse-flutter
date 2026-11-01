@@ -37,7 +37,7 @@ void main() {
     currentPriceEur: 1,
     priceChangePercent24h: 1,
     marketCapRank: 1,
-    sparkline7d: const [1],
+    sparkline7d: [1],
   );
 
   const chainlink = MarketCoin(
@@ -48,7 +48,7 @@ void main() {
     currentPriceEur: 2,
     priceChangePercent24h: -1,
     marketCapRank: 20,
-    sparkline7d: const [1, 2],
+    sparkline7d: [1, 2],
   );
 
   setUp(() {
@@ -73,7 +73,7 @@ void main() {
       when(() => markets.loadMarkets()).thenAnswer(
         (_) async => Success(
           MarketsSnapshot(
-            fetchedAt: DateTime.utc(2026, 6, 1),
+            fetchedAt: DateTime.utc(2026, 6),
             global: const GlobalMarketSummary(marketCapChangePercent24h: 0),
             coins: const [bitcoin],
           ),
@@ -99,7 +99,7 @@ void main() {
     when(() => markets.loadMarkets()).thenAnswer(
       (_) async => Success(
         MarketsSnapshot(
-          fetchedAt: DateTime.utc(2026, 6, 1),
+          fetchedAt: DateTime.utc(2026, 6),
           global: const GlobalMarketSummary(marketCapChangePercent24h: 0),
           coins: const [bitcoin],
         ),
@@ -121,17 +121,17 @@ void main() {
     when(() => markets.loadMarkets()).thenAnswer(
       (_) async => Success(
         MarketsSnapshot(
-          fetchedAt: DateTime.utc(2026, 6, 1),
+          fetchedAt: DateTime.utc(2026, 6),
           global: const GlobalMarketSummary(marketCapChangePercent24h: 0),
           coins: const [],
         ),
       ),
     );
     when(() => supplemental.fetchByIds(['chainlink'])).thenAnswer(
-      (_) async => Success(
-        const [chainlink],
+      (_) async => const Success(
+        [chainlink],
         isStale: true,
-        refreshError: const ServerFailure(statusCode: 503),
+        refreshError: ServerFailure(statusCode: 503),
       ),
     );
 
