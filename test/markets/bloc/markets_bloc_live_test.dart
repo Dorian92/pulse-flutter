@@ -5,6 +5,7 @@ import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/realtime/price_tick.dart';
 import 'package:pulse/core/realtime/realtime_status.dart';
 import 'package:pulse/core/realtime/realtime_subscription_coordinator.dart';
+import 'package:pulse/core/realtime/symbol_mapper.dart';
 import 'package:pulse/markets/bloc/markets_bloc.dart';
 import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
@@ -18,6 +19,7 @@ void main() {
   late MockMarketsRepository repository;
   late FakePriceStreamService fakeStream;
   late RealtimeSubscriptionCoordinator coordinator;
+  late SymbolMapper mapper;
 
   const btc = MarketCoin(
     id: 'bitcoin',
@@ -31,31 +33,46 @@ void main() {
     binanceSymbol: 'BTCUSDT',
   );
 
+  const unmapped = MarketCoin(
+    id: 'obscure',
+    symbol: 'obs',
+    name: 'Obscure',
+    imageUrl: '',
+    currentPriceEur: 1,
+    priceChangePercent24h: 0,
+    marketCapRank: 50,
+    sparkline7d: [1],
+  );
+
   final snapshot = MarketsSnapshot(
     fetchedAt: DateTime.utc(2026, 6),
     global: const GlobalMarketSummary(
       totalMarketCapEur: 1,
       marketCapChangePercent24h: 0,
     ),
-    coins: const [btc],
+    coins: const [btc, unmapped],
   );
 
   setUp(() {
     repository = MockMarketsRepository();
     fakeStream = FakePriceStreamService();
     coordinator = RealtimeSubscriptionCoordinator(fakeStream);
+    mapper = SymbolMapper();
     when(
       () => repository.loadMarkets(),
     ).thenAnswer((_) async => Success(snapshot));
   });
 
+  MarketsBloc buildBloc() => MarketsBloc(
+    repository: repository,
+    subscriptionCoordinator: coordinator,
+    priceStreamService: fakeStream,
+    symbolMapper: mapper,
+  );
+
   blocTest<MarketsBloc, MarketsState>(
     'registers top binance symbols after load',
-    build: () => MarketsBloc(
-      repository: repository,
-      subscriptionCoordinator: coordinator,
-      priceStreamService: fakeStream,
-    ),
+    build: buildBloc,
     act: (bloc) async {
       bloc.add(const MarketsRequested());
       await bloc.stream.firstWhere(
@@ -75,11 +92,7 @@ void main() {
 
   blocTest<MarketsBloc, MarketsState>(
     'merges live tick into snapshot and flash generation',
-    build: () => MarketsBloc(
-      repository: repository,
-      subscriptionCoordinator: coordinator,
-      priceStreamService: fakeStream,
-    ),
+    build: buildBloc,
     seed: () =>
         MarketsState.loaded(snapshot: snapshot, visibleCoins: const [btc]),
     act: (bloc) async {
@@ -87,6 +100,7 @@ void main() {
         MarketsPriceTickReceived(
           PriceTick(
             symbol: 'BTCUSDT',
+            lastPriceUsdt: 105,
             lastPriceEur: 105,
             changePercent24h: 2.5,
             eventTime: DateTime.utc(2026, 6, 1, 12, 1),
@@ -104,11 +118,7 @@ void main() {
 
   blocTest<MarketsBloc, MarketsState>(
     'forwards realtime status to state',
-    build: () => MarketsBloc(
-      repository: repository,
-      subscriptionCoordinator: coordinator,
-      priceStreamService: fakeStream,
-    ),
+    build: buildBloc,
     act: (bloc) async {
       fakeStream.emitStatus(const RealtimeStatus.live());
     },
@@ -117,6 +127,29 @@ void main() {
         (s) => s.realtimeStatus,
         'status',
         isA<RealtimeLive>(),
+      ),
+    ],
+  );
+
+  blocTest<MarketsBloc, MarketsState>(
+    'remaps binance symbols when SymbolMapper updates',
+    build: buildBloc,
+    seed: () => MarketsState.loaded(
+      snapshot: snapshot,
+      visibleCoins: const [btc, unmapped],
+    ),
+    act: (bloc) async {
+      mapper.applyExchangeBaseAssets({'OBS': 'OBSUSDT'});
+      await bloc.stream.firstWhere(
+        (s) => s.visibleCoins.any((c) => c.id == 'obscure' && c.hasLiveFeed),
+      );
+      expect(fakeStream.lastDesiredSymbols, contains('obsusdt'));
+    },
+    expect: () => [
+      isA<MarketsState>().having(
+        (s) => s.visibleCoins.last.binanceSymbol,
+        'mapped',
+        'OBSUSDT',
       ),
     ],
   );

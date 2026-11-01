@@ -1,3 +1,5 @@
+import 'dart:async';
+
 /// Maps CoinGecko coin ids to Binance USDT spot symbols for live data.
 class SymbolMapper {
   /// Creates a mapper with optional overrides for tests.
@@ -6,6 +8,10 @@ class SymbolMapper {
 
   final Map<String, String> _overrides;
   final Map<String, String> _exchangeByBaseAsset = {};
+  final StreamController<int> _updatesController =
+      StreamController<int>.broadcast();
+
+  int _generation = 0;
 
   static const Map<String, String> _knownIds = {
     'bitcoin': 'BTCUSDT',
@@ -22,9 +28,22 @@ class SymbolMapper {
     'litecoin': 'LTCUSDT',
   };
 
+  /// Increments when exchange-derived mappings change ([applyExchangeBaseAssets]).
+  int get generation => _generation;
+
+  /// Fires after [applyExchangeBaseAssets] updates the mapper (for UI re-bind).
+  Stream<int> get updates => _updatesController.stream;
+
   /// Merges base-asset → Binance symbol entries from cached `exchangeInfo`.
   void applyExchangeBaseAssets(Map<String, String> baseAssetToSymbol) {
+    if (baseAssetToSymbol.isEmpty) {
+      return;
+    }
     _exchangeByBaseAsset.addAll(baseAssetToSymbol);
+    _generation++;
+    if (!_updatesController.isClosed) {
+      _updatesController.add(_generation);
+    }
   }
 
   /// Returns a Binance *USDT symbol (e.g. `BTCUSDT`) or null when no pair is known.

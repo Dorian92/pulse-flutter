@@ -87,7 +87,7 @@ stateDiagram-v2
 - Features register **lowercase** Binance symbols with a **token** (`markets`, `watchlist`, `coinDetail`).
 - `register(token, Set<String> symbols)` / `unregister(token)` updates ref counts per symbol.
 - Union set (+ `eurusdt@ticker` inside service) passed to `PriceStreamService.setDesiredSymbols`.
-- **`MarketsBloc`:** on load/search/filter, emits subscription set from visible list policy (below).
+- **`SymbolMapper.updates`** stream lets `MarketsBloc` re-bind `binanceSymbol` and live subscriptions when `SymbolMapperLoader.warmUp()` completes (non-blocking in `main`).
 - **`WatchlistCubit`:** stub calls `register('watchlist', {})` until step 7 (interface ready).
 
 ## Markets visible subscription policy
@@ -108,6 +108,7 @@ Documented **top-50 policy** (no scroll instrumentation in step 5):
 
 - `eurUsdtRate` = last price from `EURUSDT` ticker (USDT per 1 EUR).
 - `priceEur = priceUsdt / eurUsdtRate`.
+- **`PriceTick`** carries both `lastPriceUsdt` and `lastPriceEur`. Step 7 USD display can convert from USDT (or reuse EUR with settings FX) without changing the WebSocket parser.
 - Static fields (market cap, REST `currentPriceEur`) remain CoinGecko EUR; live row price/24h % can come from Binance ticker when subscribed.
 
 ## App lifecycle

@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/network/api_client.dart';
 import 'package:pulse/core/realtime/symbol_mapper.dart';
@@ -35,8 +37,11 @@ class SymbolMapperLoader {
       schemaVersion: _schemaVersion,
     );
     if (cached != null) {
+      final generationBefore = _symbolMapper.generation;
       _applyPayload(cached);
-      return const Success(true);
+      if (_symbolMapper.generation > generationBefore) {
+        return const Success(true);
+      }
     }
 
     final remote = await _apiClient.getBinanceJson<Map<String, dynamic>>(
@@ -62,6 +67,18 @@ class SymbolMapperLoader {
         _symbolMapper.applyExchangeBaseAssets(baseMap);
         return const Success(true);
       case Failure(:final error):
+        final stale = await _cacheStore.readStale(
+          key: cacheKey,
+          schemaVersion: _schemaVersion,
+        );
+        if (stale != null) {
+          _applyPayload(stale);
+          developer.log(
+            'SymbolMapperLoader: remote failed; using stale exchangeInfo cache',
+            name: 'SymbolMapperLoader',
+          );
+          return const Success(true, isStale: true);
+        }
         return Failure(error);
     }
   }
@@ -69,6 +86,10 @@ class SymbolMapperLoader {
   void _applyPayload(Map<String, dynamic> payload) {
     final bases = payload['bases'] as Map<String, dynamic>?;
     if (bases == null) {
+      developer.log(
+        'SymbolMapperLoader: corrupt cache payload (missing bases)',
+        name: 'SymbolMapperLoader',
+      );
       return;
     }
     _symbolMapper.applyExchangeBaseAssets(

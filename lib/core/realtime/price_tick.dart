@@ -1,10 +1,11 @@
 import 'package:equatable/equatable.dart';
 
-/// A throttled live price update for one Binance USDT pair (EUR-converted).
+/// A throttled live price update for one Binance USDT pair.
 class PriceTick extends Equatable {
   /// Creates a tick.
   const PriceTick({
     required this.symbol,
+    required this.lastPriceUsdt,
     required this.lastPriceEur,
     required this.eventTime,
     this.changePercent24h,
@@ -13,7 +14,10 @@ class PriceTick extends Equatable {
   /// Binance symbol in uppercase (e.g. `BTCUSDT`).
   final String symbol;
 
-  /// Last price converted to EUR for display.
+  /// Last price in USDT from the Binance ticker (`c` field).
+  final double lastPriceUsdt;
+
+  /// Last price converted to EUR for display (step 7 may convert USDT for USD).
   final double lastPriceEur;
 
   /// 24h change percentage from the ticker `P` field when present.
@@ -25,6 +29,7 @@ class PriceTick extends Equatable {
   @override
   List<Object?> get props => [
     symbol,
+    lastPriceUsdt,
     lastPriceEur,
     changePercent24h,
     eventTime,

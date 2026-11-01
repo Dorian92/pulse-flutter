@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:pulse/core/realtime/symbol_mapper.dart';
 
 /// A coin row in the markets list (EUR-denominated static fields from CoinGecko).
 class MarketCoin extends Equatable {
@@ -72,6 +73,16 @@ class MarketCoin extends Equatable {
 
   /// Whether a Binance live stream is expected in step 5+.
   bool get hasLiveFeed => binanceSymbol != null;
+
+  /// Re-resolves [binanceSymbol] from [mapper] (after exchangeInfo warm-up).
+  MarketCoin withResolvedBinanceSymbol(SymbolMapper mapper) {
+    return copyWith(
+      binanceSymbol: mapper.binanceUsdtSymbolFor(
+        coinGeckoId: id,
+        coinGeckoSymbol: symbol,
+      ),
+    );
+  }
 
   /// Returns a copy with optional live-price fields updated.
   MarketCoin copyWith({

@@ -56,3 +56,8 @@ final class MarketsRealtimeStatusChanged extends MarketsEvent {
   @override
   List<Object?> get props => [status];
 }
+
+/// ExchangeInfo map finished loading; re-bind Binance symbols on list rows.
+final class MarketsSymbolMappingUpdated extends MarketsEvent {
+  const MarketsSymbolMappingUpdated();
+}

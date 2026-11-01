@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pulse/core/theme/app_colors.dart';
 import 'package:pulse/core/theme/pulse_text_styles.dart';
@@ -40,6 +42,7 @@ class CoinListTile extends StatefulWidget {
 
 class _CoinListTileState extends State<CoinListTile> {
   bool _flashVisible = false;
+  Timer? _flashTimer;
 
   @override
   void initState() {
@@ -48,23 +51,29 @@ class _CoinListTileState extends State<CoinListTile> {
   }
 
   @override
+  void dispose() {
+    _flashTimer?.cancel();
+    super.dispose();
+  }
+
+  void _triggerFlash() {
+    _flashTimer?.cancel();
+    setState(() => _flashVisible = true);
+    _flashTimer = Timer(PulseTokens.standard.durationMedium, () {
+      if (mounted) {
+        setState(() => _flashVisible = false);
+      }
+    });
+  }
+
+  @override
   void didUpdateWidget(CoinListTile oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.liveFlashToken != null &&
         widget.liveFlashToken != oldWidget.liveFlashToken) {
-      setState(() => _flashVisible = true);
-      Future<void>.delayed(PulseTokens.standard.durationMedium, () {
-        if (mounted) {
-          setState(() => _flashVisible = false);
-        }
-      });
+      _triggerFlash();
     } else if (widget.showLiveFlash && !oldWidget.showLiveFlash) {
-      setState(() => _flashVisible = true);
-      Future<void>.delayed(PulseTokens.standard.durationMedium, () {
-        if (mounted) {
-          setState(() => _flashVisible = false);
-        }
-      });
+      _triggerFlash();
     }
   }
 

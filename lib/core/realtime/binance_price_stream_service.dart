@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:pulse/core/config/app_config.dart';
 import 'package:pulse/core/realtime/price_stream_service.dart';
@@ -23,6 +25,7 @@ class BinancePriceStreamService implements PriceStreamService {
 
   static const String _eurPair = 'eurusdt';
   static const String _tickerSuffix = '@ticker';
+  static const int _maxControlMessagesPerSecond = 5;
 
   final AppConfig _config;
   final StreamChannel<Object?> Function(Uri uri) _connect;
@@ -41,13 +44,20 @@ class BinancePriceStreamService implements PriceStreamService {
   Timer? _backgroundTimer;
   Timer? _staleTimer;
   Timer? _stableResetTimer;
+  Timer? _controlPumpTimer;
 
   Set<String> _desired = {};
   Set<String> _active = {};
+  final List<_PendingControlOp> _pendingOps = [];
+  final List<_ControlMessage> _controlOutbox = [];
+  final List<DateTime> _controlSentAt = [];
+
   int _controlMessageId = 1;
   int _backoffAttempt = 0;
   RealtimeStatus _status = const RealtimeStatus.offline();
   bool _disposed = false;
+  bool _flushEnabled = false;
+  bool _reconnecting = false;
 
   double? _eurUsdtRate;
   final Map<String, _RawTick> _latestRaw = {};
@@ -104,6 +114,7 @@ class BinancePriceStreamService implements PriceStreamService {
     _flushTimer?.cancel();
     _staleTimer?.cancel();
     _stableResetTimer?.cancel();
+    _controlPumpTimer?.cancel();
     await _channelSub?.cancel();
     await _channel?.sink.close();
     _channel = null;
@@ -120,6 +131,8 @@ class BinancePriceStreamService implements PriceStreamService {
       return;
     }
     if (_channel == null || forceReconnect) {
+      _debounceTimer?.cancel();
+      _debounceTimer = null;
       _connectSocket();
       return;
     }
@@ -134,8 +147,13 @@ class BinancePriceStreamService implements PriceStreamService {
     if (_disposed || _desired.isEmpty) {
       return;
     }
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
     _reconnectTimer?.cancel();
+    _reconnecting = false;
+    _eurUsdtRate = null;
     _emitStatus(const RealtimeStatus.connecting());
+    _pauseLivePipeline(clearRaw: true);
     _teardownChannelOnly();
     final uri = Uri.parse(_config.binanceWebSocketUrl);
     _channel = _connect(uri);
@@ -146,8 +164,10 @@ class BinancePriceStreamService implements PriceStreamService {
       onDone: _handleDisconnect,
       cancelOnError: false,
     );
+    _flushEnabled = true;
     _startFlushTimer();
     _applySubscriptionDiff(initial: true);
+    _emitStatus(const RealtimeStatus.degraded());
   }
 
   void _applySubscriptionDiff({bool initial = false}) {
@@ -161,23 +181,63 @@ class BinancePriceStreamService implements PriceStreamService {
       return;
     }
     if (toRemove.isNotEmpty) {
-      _sendControl(method: 'UNSUBSCRIBE', symbols: toRemove);
-      _active.removeAll(toRemove);
+      _enqueueControl(method: 'UNSUBSCRIBE', symbols: toRemove);
     }
     if (toAdd.isNotEmpty) {
-      _sendControl(method: 'SUBSCRIBE', symbols: toAdd);
-      _active.addAll(toAdd);
+      _enqueueControl(method: 'SUBSCRIBE', symbols: toAdd);
     }
   }
 
-  void _sendControl({required String method, required Set<String> symbols}) {
-    final params = symbols
+  void _enqueueControl({required String method, required Set<String> symbols}) {
+    if (symbols.isEmpty) {
+      return;
+    }
+    final id = _controlMessageId++;
+    _pendingOps.add(
+      _PendingControlOp(method: method, symbols: symbols, id: id),
+    );
+    _controlOutbox.add(
+      _ControlMessage(method: method, symbols: symbols, id: id),
+    );
+    _scheduleControlPump();
+  }
+
+  void _scheduleControlPump() {
+    _controlPumpTimer ??= Timer.periodic(
+      const Duration(milliseconds: 210),
+      (_) => _pumpControlOutbox(),
+    );
+    _pumpControlOutbox();
+  }
+
+  void _pumpControlOutbox() {
+    if (_disposed || _channel == null || _controlOutbox.isEmpty) {
+      return;
+    }
+    final now = DateTime.now();
+    _controlSentAt.removeWhere(
+      (sentAt) => now.difference(sentAt) > const Duration(seconds: 1),
+    );
+    while (_controlOutbox.isNotEmpty &&
+        _controlSentAt.length < _maxControlMessagesPerSecond) {
+      final message = _controlOutbox.removeAt(0);
+      _sendControlNow(message);
+      _controlSentAt.add(now);
+    }
+    if (_controlOutbox.isEmpty) {
+      _controlPumpTimer?.cancel();
+      _controlPumpTimer = null;
+    }
+  }
+
+  void _sendControlNow(_ControlMessage message) {
+    final params = message.symbols
         .map((s) => '$s$_tickerSuffix')
         .toList(growable: false);
     final payload = jsonEncode({
-      'method': method,
+      'method': message.method,
       'params': params,
-      'id': _controlMessageId++,
+      'id': message.id,
     });
     _channel?.sink.add(payload);
   }
@@ -198,6 +258,11 @@ class BinancePriceStreamService implements PriceStreamService {
     try {
       final decoded = jsonDecode(text);
       if (decoded is Map<String, dynamic>) {
+        if (decoded.containsKey('id') &&
+            (decoded.containsKey('result') || decoded.containsKey('error'))) {
+          _handleControlResponse(decoded);
+          return;
+        }
         if (decoded.containsKey('data') &&
             decoded['data'] is Map<String, dynamic>) {
           payload = decoded['data'] as Map<String, dynamic>;
@@ -214,6 +279,40 @@ class BinancePriceStreamService implements PriceStreamService {
     if (payload['e'] != '24hrTicker') {
       return;
     }
+    _handleTickerPayload(payload);
+  }
+
+  void _handleControlResponse(Map<String, dynamic> payload) {
+    final id = payload['id'] as int?;
+    if (id == null) {
+      return;
+    }
+    final opIndex = _pendingOps.indexWhere((op) => op.id == id);
+    if (opIndex < 0) {
+      return;
+    }
+    final op = _pendingOps.removeAt(opIndex);
+    final error = payload['error'];
+    if (error != null) {
+      developer.log(
+        'Binance control ${op.method} failed (id=$id): $error',
+        name: 'PriceStreamService',
+      );
+      _active = {};
+      _pendingOps.clear();
+      _controlOutbox.clear();
+      _applySubscriptionDiff(initial: true);
+      return;
+    }
+    switch (op.method) {
+      case 'SUBSCRIBE':
+        _active.addAll(op.symbols);
+      case 'UNSUBSCRIBE':
+        _active.removeAll(op.symbols);
+    }
+  }
+
+  void _handleTickerPayload(Map<String, dynamic> payload) {
     final symbol = (payload['s'] as String?)?.toUpperCase();
     final lastPrice = double.tryParse(payload['c'] as String? ?? '');
     final eventMs = payload['E'] as int?;
@@ -225,10 +324,7 @@ class BinancePriceStreamService implements PriceStreamService {
 
     if (symbol == _eurPair.toUpperCase()) {
       _eurUsdtRate = lastPrice;
-      if (_status is! RealtimeLive) {
-        _emitStatus(const RealtimeStatus.live());
-        _armStableReset();
-      }
+      _maybePromoteToLive();
       return;
     }
 
@@ -242,12 +338,19 @@ class BinancePriceStreamService implements PriceStreamService {
       changePercent24h: changePercent,
       eventTime: eventTime,
     );
+    _maybePromoteToLive();
+  }
 
-    if (_status is! RealtimeLive && _status is! RealtimeDegraded) {
+  void _maybePromoteToLive() {
+    if (_eurUsdtRate == null || _eurUsdtRate! <= 0) {
+      if (_status is! RealtimeDegraded && _status is! RealtimeOffline) {
+        _emitStatus(const RealtimeStatus.degraded());
+      }
+      return;
+    }
+    if (_status is! RealtimeLive) {
       _emitStatus(const RealtimeStatus.live());
       _armStableReset();
-    } else if (_status is RealtimeDegraded) {
-      _emitStatus(const RealtimeStatus.live());
     }
   }
 
@@ -260,7 +363,12 @@ class BinancePriceStreamService implements PriceStreamService {
   }
 
   void _flushTicks() {
-    if (_disposed || _eurUsdtRate == null || _eurUsdtRate! <= 0) {
+    if (_disposed ||
+        !_flushEnabled ||
+        _reconnecting ||
+        _channel == null ||
+        _eurUsdtRate == null ||
+        _eurUsdtRate! <= 0) {
       return;
     }
     for (final entry in _latestRaw.entries) {
@@ -269,6 +377,7 @@ class BinancePriceStreamService implements PriceStreamService {
       final eurPrice = raw.usdtPrice / _eurUsdtRate!;
       final tick = PriceTick(
         symbol: symbolUpper,
+        lastPriceUsdt: raw.usdtPrice,
         lastPriceEur: eurPrice,
         changePercent24h: raw.changePercent24h,
         eventTime: raw.eventTime,
@@ -288,6 +397,8 @@ class BinancePriceStreamService implements PriceStreamService {
     if (_disposed) {
       return;
     }
+    _reconnecting = true;
+    _pauseLivePipeline(clearRaw: true);
     _teardownChannelOnly();
     if (_desired.isEmpty) {
       _emitStatus(const RealtimeStatus.offline());
@@ -307,12 +418,22 @@ class BinancePriceStreamService implements PriceStreamService {
     });
   }
 
-  void _teardownConnection({required bool emitOffline}) {
-    _teardownChannelOnly();
+  void _pauseLivePipeline({required bool clearRaw}) {
+    _flushEnabled = false;
     _flushTimer?.cancel();
     _flushTimer = null;
-    _latestRaw.clear();
+    if (clearRaw) {
+      _latestRaw.clear();
+    }
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
+  }
+
+  void _teardownConnection({required bool emitOffline}) {
+    _pauseLivePipeline(clearRaw: true);
+    _teardownChannelOnly();
     _lastFlushed.clear();
+    _eurUsdtRate = null;
     if (emitOffline) {
       _emitStatus(const RealtimeStatus.offline());
     }
@@ -324,10 +445,18 @@ class BinancePriceStreamService implements PriceStreamService {
     _channel?.sink.close();
     _channel = null;
     _active = {};
+    _pendingOps.clear();
+    _controlOutbox.clear();
+    _controlSentAt.clear();
+    _controlPumpTimer?.cancel();
+    _controlPumpTimer = null;
     _staleTimer?.cancel();
     _stableResetTimer?.cancel();
   }
 
+  /// Stale detection relies on **JSON `@ticker` traffic** on [StreamChannel.stream].
+  /// Binance server **ping frames** on `IOWebSocketChannel` do not always appear here;
+  /// with active subscriptions, `@ticker` (~1s) keeps this timer fresh.
   void _armStaleTimer() {
     _staleTimer?.cancel();
     _staleTimer = Timer(_config.realtimeStaleAfter, () {
@@ -369,14 +498,26 @@ class _RawTick {
   final DateTime eventTime;
 }
 
-bool setEquals<T>(Set<T> a, Set<T> b) {
-  if (a.length != b.length) {
-    return false;
-  }
-  for (final value in a) {
-    if (!b.contains(value)) {
-      return false;
-    }
-  }
-  return true;
+class _PendingControlOp {
+  _PendingControlOp({
+    required this.method,
+    required this.symbols,
+    required this.id,
+  });
+
+  final String method;
+  final Set<String> symbols;
+  final int id;
+}
+
+class _ControlMessage {
+  _ControlMessage({
+    required this.method,
+    required this.symbols,
+    required this.id,
+  });
+
+  final String method;
+  final Set<String> symbols;
+  final int id;
 }

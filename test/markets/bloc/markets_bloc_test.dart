@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:pulse/core/error/app_failure.dart';
 import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/realtime/realtime_subscription_coordinator.dart';
+import 'package:pulse/core/realtime/symbol_mapper.dart';
 import 'package:pulse/core/widgets/filter_chips_row.dart';
 import 'package:pulse/markets/bloc/markets_bloc.dart';
 import 'package:pulse/markets/models/global_market_summary.dart';
@@ -17,10 +18,12 @@ class MockMarketsRepository extends Mock implements MarketsRepository {}
 MarketsBloc _buildBloc(MockMarketsRepository repository) {
   final fakeStream = FakePriceStreamService();
   final coordinator = RealtimeSubscriptionCoordinator(fakeStream);
+  final mapper = SymbolMapper();
   return MarketsBloc(
     repository: repository,
     subscriptionCoordinator: coordinator,
     priceStreamService: fakeStream,
+    symbolMapper: mapper,
   );
 }
 
