@@ -103,7 +103,7 @@ void main() {
 Map<String, dynamic> _ticker(String symbol, String last, String changeP) {
   return {
     'e': '24hrTicker',
-    'E': DateTime.utc(2026, 6, 1).millisecondsSinceEpoch,
+    'E': DateTime.utc(2026, 6).millisecondsSinceEpoch,
     's': symbol,
     'c': last,
     'P': changeP,

@@ -17,7 +17,7 @@ void main() {
 
   group('PulseApp smoke', () {
     testWidgets('boots and shows markets tab', (tester) async {
-      await tester.pumpWidget(PulseApp());
+      await tester.pumpWidget(const PulseApp());
       await tester.pumpAndSettle();
 
       expect(find.byType(MarketsPage), findsOneWidget);
@@ -25,7 +25,7 @@ void main() {
     });
 
     testWidgets('bottom nav switches shell tabs', (tester) async {
-      await tester.pumpWidget(PulseApp());
+      await tester.pumpWidget(const PulseApp());
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Watchlist'));

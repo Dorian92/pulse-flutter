@@ -3,13 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pulse/core/error/app_failure.dart';
 import 'package:pulse/core/error/result.dart';
+import 'package:pulse/core/realtime/realtime_subscription_coordinator.dart';
 import 'package:pulse/core/widgets/filter_chips_row.dart';
 import 'package:pulse/markets/bloc/markets_bloc.dart';
 import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
-import 'package:pulse/core/realtime/realtime_subscription_coordinator.dart';
 import '../../core/realtime/fake_price_stream_service.dart';
 
 class MockMarketsRepository extends Mock implements MarketsRepository {}

@@ -17,7 +17,7 @@ void main() {
           body: Row(
             children: [
               LiveIndicator(active: false),
-              LiveIndicator(active: true),
+              LiveIndicator(),
             ],
           ),
         ),
@@ -40,12 +40,12 @@ void main() {
             builder: (context, setState) {
               return Column(
                 children: [
-                  CoinListTile(
+                  const CoinListTile(
                     name: 'Bitcoin',
                     symbol: 'btc',
                     priceText: '€1',
                     changePercent: 1,
-                    sparklineValues: const [1, 2],
+                    sparklineValues: [1, 2],
                     liveFlashToken: 1,
                   ),
                   TextButton(

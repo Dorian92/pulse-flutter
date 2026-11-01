@@ -11,5 +11,5 @@ Future<void> main() async {
   await HiveBoxes.init();
   await configureDependencies();
   unawaited(sl<SymbolMapperLoader>().warmUp());
-  runApp(PulseApp());
+  runApp(const PulseApp());
 }

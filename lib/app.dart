@@ -7,7 +7,7 @@ import 'package:pulse/core/theme/app_theme.dart';
 import 'package:pulse/l10n/app_localizations.dart';
 
 class PulseApp extends StatefulWidget {
-  PulseApp({super.key});
+  const PulseApp({super.key});
 
   @override
   State<PulseApp> createState() => _PulseAppState();

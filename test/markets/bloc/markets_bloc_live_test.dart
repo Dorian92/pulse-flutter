@@ -32,7 +32,7 @@ void main() {
   );
 
   final snapshot = MarketsSnapshot(
-    fetchedAt: DateTime.utc(2026, 6, 1),
+    fetchedAt: DateTime.utc(2026, 6),
     global: const GlobalMarketSummary(
       totalMarketCapEur: 1,
       marketCapChangePercent24h: 0,
