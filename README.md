@@ -1,116 +1,135 @@
 # Pulse
 
-**Pulse** is a portfolio-grade crypto market tracker built with **Flutter**. It demonstrates feature-first architecture, layered caching, a shared real-time price pipeline, and test-driven delivery—skills Dorian uses as a Senior Flutter engineer. A separate **React Native** twin is planned in another repository; this repo is the Flutter reference implementation.
+**Pulse** is a Flutter crypto market tracker that pairs CoinGecko metadata with Binance live prices. It is built as a portfolio reference: feature-first modules, cache-first REST, a single shared WebSocket pipeline, strict analysis, and tests at every layer—without trading or accounts.
 
-## Planned features
+![Pulse demo — fixture data](docs/demo/pulse_demo.gif)
 
-| Area | Scope |
-|------|--------|
-| **Markets** | Top ~100 coins: price, 24h change, sparkline; search and sort; live price updates |
-| **Coin detail** | Line/candle chart (1D / 1W / 1M / 1Y), stats (market cap, volume, high/low), description and links, add to watchlist |
-| **Watchlist** | Saved coins with live prices; swipe to remove with undo; drag to reorder; persisted locally |
-| **Settings** | Theme (system / light / dark), language (EN / Serbian Latin), display currency (USD / EUR); persisted |
+> Demo frames use **fixture data** (see filenames under `docs/screenshots/`). Binance public streams and CoinGecko Demo API power production builds when keys and network are available.
+
+## Features
+
+| Area | What you get |
+|------|----------------|
+| **Markets** | Top coins with sparklines, search, filters (all / gainers / losers / watchlist), pull-to-refresh, stale-offline banner |
+| **Live prices** | Binance `@ticker` over one WebSocket; EUR display via live EUR/USDT; flash + connection indicator |
+| **Coin detail** | Chart ranges 1D–1Y (`fl_chart`), stats, about, external links, watchlist star |
+| **Watchlist** | Persisted order, swipe remove + undo, live rows |
+| **Settings** | Theme, English / Serbian Latin, USD or EUR display currency, cache clear |
+
+## Screenshots
+
+| | | |
+|:---:|:---:|:---:|
+| ![Markets dark fixture](docs/screenshots/01_markets_dark_fixture.png) | ![Markets light fixture](docs/screenshots/02_markets_light_fixture.png) | ![Gainers filter](docs/screenshots/03_markets_gainers_filter_fixture.png) |
+| ![Search active](docs/screenshots/04_markets_search_active_fixture.png) | ![Loading shimmer](docs/screenshots/05_markets_loading_shimmer_fixture.png) | ![Offline stale banner](docs/screenshots/06_markets_offline_stale_fixture.png) |
+| ![Design gallery](docs/screenshots/07_design_gallery_dark_fixture.png) | ![Settings](docs/screenshots/09_settings_tab_fixture.png) | ![Coin detail chart](docs/screenshots/11_coin_detail_chart_fixture.png) |
+
+More frames: `docs/screenshots/` (Serbian locale, design gallery scroll, etc.).
 
 ## Tech stack
 
-- **Flutter** 3.35+ (stable channel), **Dart 3**
-- **State:** `flutter_bloc`, `bloc_concurrency` (from step 2 onward)
-- **Navigation:** `go_router`
-- **DI:** `get_it` (composition root only); constructor injection elsewhere
+- **Flutter** 3.35+ · **Dart** 3.9+
+- **State:** `flutter_bloc`, `bloc_concurrency`
+- **Navigation:** `go_router` (shell + deep links)
+- **DI:** `get_it` (composition root only)
 - **Network:** `http`, `web_socket_channel`
-- **Models:** `json_serializable`, `equatable`
-- **Charts:** `fl_chart` (see [architecture](docs/architecture.md))
-- **Storage:** `hive` + `hive_flutter` (see [caching](docs/caching.md))
-- **L10n:** ARB under `lang/` (`app_en.arb`, `app_sr.arb`, `app_sr_Latn.arb`), generated to `lib/l10n/`
-- **Tests:** `flutter_test`, `bloc_test`, `mocktail`
+- **Storage:** Hive (`CacheStore`, preferences, watchlist)
+- **Charts:** `fl_chart`
+- **L10n:** ARB (`en`, `sr_Latn`)
+- **Tests:** `flutter_test`, `bloc_test`, `mocktail`, `integration_test`
 
-## Documentation
+## Architecture (overview)
 
-| Doc | Contents |
-|-----|----------|
-| [Architecture](docs/architecture.md) | Folder layout, data flow, `Result` / failures, key decisions |
-| [Real-time](docs/realtime.md) | `PriceStreamService` (Binance WebSocket) |
-| [Caching](docs/caching.md) | TTLs, offline behaviour, storage |
-| [API](docs/api.md) | Binance + CoinGecko endpoints, limits, samples |
-| [Roadmap](docs/roadmap.md) | Step-by-step PR plan |
-| [AGENTS.md](AGENTS.md) | Conventions for humans and coding agents |
-
-## Data sources
-
-- **[Binance Spot](https://github.com/binance/binance-spot-api-docs)** — public REST + WebSocket market data (no API key for read-only market endpoints)
-- **[CoinGecko Demo API](https://docs.coingecko.com/demo/reference/introduction)** — coin metadata, logos, descriptions, market cap; requires a free Demo API key
-
-## Demo & screenshots
-
-Phone-sized captures (390×844 logical px, 3× DPR) of the current UI live in [`docs/screenshots/`](docs/screenshots/). They are rendered from **fixture / mock bloc data** (not live APIs) via the optional generator:
-
-```bash
-bash tool/screenshots.sh
+```mermaid
+flowchart LR
+  UI[Feature UI] --> Bloc[Bloc / Cubit]
+  Bloc --> Repo[Repository]
+  Repo --> Remote[Remote DS]
+  Repo --> Local[Local / Cache]
+  Remote --> Api[ApiClient]
+  Local --> Cache[CacheStore]
+  Bloc --> PSS[PriceStreamService]
+  PSS --> UI
 ```
 
-PNG output defaults to `/opt/cursor/artifacts/screenshots/` when `SCREENSHOT_DIR` is unset. The generator lives in `tool/screenshot_capture_test.dart` (`@Tags(['screenshots'])`) and is **not** run by CI (`flutter test` only executes `test/`).
-
-| File | Screen |
-|------|--------|
-| `01_markets_dark_fixture.png` | Markets, dark theme, LIVE indicator |
-| `02_markets_light_fixture.png` | Markets, light theme |
-| `03_markets_gainers_filter_fixture.png` | Markets, Gainers filter |
-| `04_markets_search_active_fixture.png` | Markets, search open |
-| `05_markets_loading_shimmer_fixture.png` | Markets loading shimmer |
-| `06_markets_offline_stale_fixture.png` | Markets with offline banner |
-| `07_design_gallery_dark_fixture.png` | Debug design gallery (dark) |
-| `08_design_gallery_light_scrolled_fixture.png` | Design gallery, light, scrolled |
-| `09_settings_tab_fixture.png` | Settings tab with bottom nav |
-| `10_markets_serbian_locale_fixture.png` | Markets, Serbian (`sr_Latn`) |
-| `11_coin_detail_chart_fixture.png` | Coin detail with chart |
+Details, folder layout, and error model: **[docs/architecture.md](docs/architecture.md)** · realtime: **[docs/realtime.md](docs/realtime.md)** · TTLs: **[docs/caching.md](docs/caching.md)** · APIs: **[docs/api.md](docs/api.md)** · delivery: **[docs/roadmap.md](docs/roadmap.md)** · agents: **[AGENTS.md](AGENTS.md)**
 
 ## Getting started
 
-Requires [Flutter stable](https://docs.flutter.dev/get-started/install) (CI pins **3.35.7**).
+Requires [Flutter stable](https://docs.flutter.dev/get-started/install) (CI uses **3.35.7**).
 
 ```bash
 flutter pub get
-flutter gen-l10n   # also runs via `flutter pub get` when ARBs change
-flutter run
+flutter gen-l10n   # runs via pub get when ARBs change
+flutter run --dart-define=COINGECKO_DEMO_API_KEY=your_demo_key
 ```
 
-Run tests and analysis locally (matches CI):
-
-```bash
-dart format lib test
-flutter analyze
-flutter test --coverage
-bash tool/check_generated.sh
-```
-
-Application ID: **`com.doriansabo.pulse`** (Android/iOS).
-
-### Configuration
+Application ID: **`com.doriansabo.pulse`**
 
 | Variable | Purpose |
 |----------|---------|
-| `COINGECKO_DEMO_API_KEY` | Passed at build/run time (e.g. `--dart-define=COINGECKO_DEMO_API_KEY=...`); required from roadmap step 3; never committed |
+| `COINGECKO_DEMO_API_KEY` | CoinGecko Demo API key (`--dart-define`); never commit |
 
-Binance market data endpoints used by Pulse do not require a key.
+Binance read-only market endpoints do not require a key.
+
+## Test & coverage
+
+Default CI and local runs use **fakes**—no live Binance or CoinGecko.
+
+```bash
+dart format lib test integration_test tool
+flutter analyze
+flutter test --coverage
+flutter test integration_test
+bash tool/check_generated.sh
+```
+
+Optional: regenerate fixture screenshots (`bash tool/screenshots.sh`) or demo video (`bash tool/build_demo.sh`).
+
+Coverage is uploaded from CI as `coverage/lcov.info`; there is no failing coverage threshold.
+
+## Project structure
+
+```text
+lib/
+  core/          # ApiClient, Result, cache, realtime, theme, router, DI
+  markets/       # list + bloc + repository
+  coin_detail/   # chart, detail, live merge
+  watchlist/     # persistence + UI
+  settings/      # theme, locale, currency
+  shell/         # bottom navigation
+test/            # unit, bloc, widget tests (+ fakes)
+integration_test/ # end-to-end flows with test DI
+tool/            # screenshot harness, demo stitch, codegen checks
+docs/            # architecture, roadmap, screenshots, demo
+```
+
+## Key decisions
+
+| Topic | Choice |
+|-------|--------|
+| List ranking & copy | CoinGecko |
+| Live price & klines | Binance public REST + WebSocket |
+| Offline | Cache-first TTL; stale success + banner on refresh failure |
+| EUR live display | USDT ticks ÷ live EUR/USDT |
+| Missing Binance pair | Row still shown; “no live feed” badge |
+| Persistence | Hive (see caching doc) |
+| License | MIT |
+
+## Roadmap & limitations
+
+Steps **1–8** on `main` cover setup through watchlist/settings, tests polish, README, and demo media. **Out of scope:** React Native twin (separate repo), accounts, portfolios, push alerts.
+
+Known limits: Demo API rate limits; WebSocket closes ~30s in background; chart/kline source falls back per [architecture](docs/architecture.md) when no USDT pair exists.
+
+## Data sources
+
+- [Binance Spot API](https://github.com/binance/binance-spot-api-docs) — public market data
+- [CoinGecko Demo API](https://docs.coingecko.com/demo/reference/introduction) — metadata and market cap ranks
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) on every pull request and push to `main`:
-
-- `dart format --set-exit-if-changed lib test`
-- `flutter analyze` (strict `analysis_options.yaml`)
-- `flutter test --coverage` (coverage uploaded as an artifact)
-- `tool/check_generated.sh` — committed `gen-l10n` output (and `build_runner` when added)
-- `flutter build apk --debug` on Ubuntu
-
-On **push to `main` only**, a macOS job runs `flutter build ios --no-codesign`.
-
-Dependabot watches pub and GitHub Actions weekly (`.github/dependabot.yml`).
-
-## Testing & localisation
-
-- **Tests:** widget smoke (shell tabs, coin detail route); unit and bloc tests added per roadmap step.
-- **L10n:** English plus Serbian Latin (`sr_Latn`); ARB files in `lang/`. Flutter requires a base `app_sr.arb` fallback when using `app_sr_Latn.arb`.
+GitHub Actions on PRs and `main`: format, analyze, `flutter test --coverage`, integration tests, generated-code check, debug APK. Coverage artifact + informational summary. iOS build on push to `main` (macOS, no codesign).
 
 ## License
 

@@ -151,6 +151,48 @@ flowchart TB
 
 **Live prices:** REST (or cache) loads the initial list; Blocs register interest with `PriceStreamService`; ticks merge into existing `Equatable` state (price, 24h change where available from ticker stream).
 
+### REST cache-first and stale fallback
+
+```mermaid
+sequenceDiagram
+  participant UI
+  participant Repo as Repository
+  participant Cache as CacheStore
+  participant Remote as Remote DS
+  UI->>Repo: load / refresh
+  Repo->>Cache: readFresh(key)
+  alt TTL valid
+    Cache-->>Repo: payload
+    Repo-->>UI: Success (isStale=false)
+  else miss or refresh forced
+    Repo->>Remote: fetch
+    alt remote OK
+      Remote-->>Repo: DTO
+      Repo->>Cache: writeJson(ttl)
+      Repo-->>UI: Success
+    else remote fail
+      Repo->>Cache: readStale(key)
+      alt stale exists
+        Repo-->>UI: Success (isStale=true, refreshError)
+      else no cache
+        Repo-->>UI: Failure
+      end
+    end
+  end
+```
+
+### Live tick merge (Markets / Detail / Watchlist)
+
+```mermaid
+flowchart LR
+  WS[Binance WS @ticker] --> PSS[PriceStreamService throttle]
+  PSS --> Coord[SubscriptionCoordinator union]
+  Coord --> Bloc[Feature Bloc]
+  Bloc -->|copyWith price| State[Equatable state]
+  State --> UI[List / detail header]
+  EUR[EURUSDT stream] --> PSS
+```
+
 ## Key decisions
 
 | Decision | Rationale |
@@ -225,6 +267,28 @@ final class RealtimeFailure extends AppFailure { /* stream disconnected */ }
 | Logging | `dart:developer` `log` in debug; no PII |
 | Currency display | Settings repository provides `vsCurrency`; fiat conversion for display uses CoinGecko prices where needed; live ticks stay in USDT from Binance |
 | Testing | Fake repositories + `FakePriceStreamService`; golden tests optional for markets list |
+
+## Testing strategy
+
+Pulse keeps network out of the default test path. Production code uses constructor injection; tests swap fakes at the composition root or pass blocs into pages.
+
+| Layer | Location | Notes |
+|-------|----------|--------|
+| Unit | `test/core/**` | `Result` / `AppFailure`, `ApiClient` retries, `CacheStore` TTL, `SymbolMapper` |
+| Realtime | `test/core/realtime/**` | `FakePriceStreamService`, fake WebSocket channel, reconnect/backoff with `fake_async` |
+| Repository | `test/**/repository/**` | Mock remote + real or in-memory Hive cache |
+| Bloc | `test/**/bloc/**` | `bloc_test` happy path + failure |
+| Widget | `test/**/ui/**` | Mock blocs or `initPulseTestDependencies()` |
+| Integration | `integration_test/` | Full `PulseApp` navigation with stub repositories (no live HTTP/WS) |
+| Visual fixtures | `tool/screenshot_capture_test.dart` | Tagged `screenshots`; writes PNGs for README / demo |
+
+**Running:** `flutter test --coverage` (CI) and `flutter test integration_test`. Live CoinGecko/Binance are optional manual checks with `--dart-define=COINGECKO_DEMO_API_KEY=...` — not required for CI.
+
+**Offline / stale UX:** When `ConnectivityService` reports offline or remote refresh fails, repositories prefer `readStale` and return `Success` with `isStale: true` (and optional `refreshError`). UI shows `OfflineBanner` / stale copy from l10n while still rendering cached rows.
+
+## Dependency injection
+
+All concrete types are registered in `lib/core/di/injection.dart` via `get_it`. Features receive interfaces through constructors; only `main` and tests call `configureDependencies` / `resetDependencies`. Tests override repositories, `PriceStreamService`, and `ConnectivityService` without touching widgets.
 
 ## Related docs
 
