@@ -42,8 +42,27 @@
 
 ## Demo & screenshots
 
-<!-- TBD: record after step 7 -->
-_GIF and screenshots will be added after the UI milestone (roadmap step 7)._
+Phone-sized captures (390×844 logical px, 3× DPR) of the current UI live in [`docs/screenshots/`](docs/screenshots/). They are rendered from **fixture / mock bloc data** (not live APIs) via the optional generator:
+
+```bash
+bash tool/screenshots.sh
+```
+
+PNG output defaults to `/opt/cursor/artifacts/screenshots/` when `SCREENSHOT_DIR` is unset. The generator lives in `tool/screenshot_capture_test.dart` (`@Tags(['screenshots'])`) and is **not** run by CI (`flutter test` only executes `test/`).
+
+| File | Screen |
+|------|--------|
+| `01_markets_dark_fixture.png` | Markets, dark theme, LIVE indicator |
+| `02_markets_light_fixture.png` | Markets, light theme |
+| `03_markets_gainers_filter_fixture.png` | Markets, Gainers filter |
+| `04_markets_search_active_fixture.png` | Markets, search open |
+| `05_markets_loading_shimmer_fixture.png` | Markets loading shimmer |
+| `06_markets_offline_stale_fixture.png` | Markets with offline banner |
+| `07_design_gallery_dark_fixture.png` | Debug design gallery (dark) |
+| `08_design_gallery_light_scrolled_fixture.png` | Design gallery, light, scrolled |
+| `09_settings_tab_fixture.png` | Settings tab with bottom nav |
+| `10_markets_serbian_locale_fixture.png` | Markets, Serbian (`sr_Latn`) |
+| `11_coin_detail_chart_fixture.png` | Coin detail with chart |
 
 ## Getting started
 
