@@ -53,5 +53,9 @@
   "marketsSearchHint": "Pretraži koini",
   "marketsRetry": "Pokušaj ponovo",
   "marketsEmptyFilter": "Nema koina za ovaj filter.",
-  "marketsNoSearchResults": "Nema rezultata pretrage."
+  "marketsNoSearchResults": "Nema rezultata pretrage.",
+  "coinDetailAboutTitle": "O projektu",
+  "coinDetailChartError": "Grafikon nije učitan.",
+  "coinDetailAddWatchlist": "Dodaj na listu praćenja",
+  "coinDetailRemoveWatchlist": "Ukloni sa liste praćenja"
 }

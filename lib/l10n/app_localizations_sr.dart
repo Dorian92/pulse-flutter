@@ -180,6 +180,18 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get marketsNoSearchResults => 'Nema rezultata pretrage.';
+
+  @override
+  String get coinDetailAboutTitle => 'O projektu';
+
+  @override
+  String get coinDetailChartError => 'Grafikon nije učitan.';
+
+  @override
+  String get coinDetailAddWatchlist => 'Dodaj na listu praćenja';
+
+  @override
+  String get coinDetailRemoveWatchlist => 'Ukloni sa liste praćenja';
 }
 
 /// The translations for Serbian, using the Latin script (`sr_Latn`).
@@ -358,4 +370,16 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get marketsNoSearchResults => 'Nema rezultata pretrage.';
+
+  @override
+  String get coinDetailAboutTitle => 'O projektu';
+
+  @override
+  String get coinDetailChartError => 'Grafikon nije učitan.';
+
+  @override
+  String get coinDetailAddWatchlist => 'Dodaj na listu praćenja';
+
+  @override
+  String get coinDetailRemoveWatchlist => 'Ukloni sa liste praćenja';
 }

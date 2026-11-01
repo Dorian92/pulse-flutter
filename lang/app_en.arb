@@ -77,5 +77,9 @@
   "marketsSearchHint": "Search coins",
   "marketsRetry": "Try again",
   "marketsEmptyFilter": "No coins match this filter.",
-  "marketsNoSearchResults": "No coins match your search."
+  "marketsNoSearchResults": "No coins match your search.",
+  "coinDetailAboutTitle": "About",
+  "coinDetailChartError": "Chart could not be loaded.",
+  "coinDetailAddWatchlist": "Add to watchlist",
+  "coinDetailRemoveWatchlist": "Remove from watchlist"
 }

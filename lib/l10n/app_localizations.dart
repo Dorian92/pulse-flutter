@@ -422,6 +422,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No coins match your search.'**
   String get marketsNoSearchResults;
+
+  /// No description provided for @coinDetailAboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get coinDetailAboutTitle;
+
+  /// No description provided for @coinDetailChartError.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart could not be loaded.'**
+  String get coinDetailChartError;
+
+  /// No description provided for @coinDetailAddWatchlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to watchlist'**
+  String get coinDetailAddWatchlist;
+
+  /// No description provided for @coinDetailRemoveWatchlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from watchlist'**
+  String get coinDetailRemoveWatchlist;
 }
 
 class _AppLocalizationsDelegate
