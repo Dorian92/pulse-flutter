@@ -4,12 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pulse/core/di/injection.dart';
+import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/storage/hive_boxes.dart';
 import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
-import 'package:pulse/core/error/result.dart';
 
 class MockMarketsRepository extends Mock implements MarketsRepository {}
 
