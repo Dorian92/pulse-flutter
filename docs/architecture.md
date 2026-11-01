@@ -29,9 +29,12 @@ lib/
 │   │   ├── api_client.dart            # http wrapper, timeouts, decode
 │   │   └── network_exception.dart
 │   ├── realtime/
-│   │   ├── price_stream_service.dart  # shared Binance WS (see realtime.md)
+│   │   ├── price_stream_service.dart  # abstract + Binance impl (see realtime.md)
 │   │   ├── price_tick.dart
-│   │   └── symbol_mapper.dart         # CoinGecko id ↔ Binance symbol
+│   │   ├── realtime_status.dart
+│   │   ├── realtime_subscription_coordinator.dart
+│   │   ├── symbol_mapper.dart         # CoinGecko id ↔ Binance symbol
+│   │   └── symbol_mapper_loader.dart  # exchangeInfo bootstrap (cached)
 │   ├── storage/
 │   │   ├── cache_store.dart           # TTL read/write, corrupt entry drop
 │   │   ├── preferences_store.dart     # settings, watchlist order
