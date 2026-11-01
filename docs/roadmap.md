@@ -69,11 +69,15 @@ Delivery is split into **eight PRs** (one step each). Each PR should stay review
 
 - Unit tests for `Result`/`AppFailure` mapping from HTTP exceptions.
 - Hive initializes in test harness.
+- `get_it` composition root resolves `ApiClient`, `CacheStore`, `SymbolMapper`.
+- Plan documented in `docs/plans/core-layer.md`.
 
 **Tests**
 
 - `api_client_test.dart`
 - `cache_store_test.dart`
+- `cache_first_test.dart`, `symbol_mapper_test.dart`, `injection_test.dart`
+- `result_app_failure_test.dart`
 
 ---
 

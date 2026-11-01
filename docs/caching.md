@@ -16,16 +16,19 @@ Pulse treats cache as a **first-class product feature**: fast startup, graceful 
 
 **Corrupt entries:** JSON decode failure or schema version mismatch → delete key, log in debug, fetch remote.
 
-**Version field:** each cache envelope includes `schemaVersion` (int) and `fetchedAt` (UTC).
+**Version field:** each cache envelope includes `schemaVersion` (int), `fetchedAt` (UTC), and `ttlSeconds` (int).
 
 ```dart
-// Envelope (conceptual)
-class CacheEnvelope<T> {
+// Envelope (stored as JSON in Hive — step 3)
+class CacheEnvelope {
   final int schemaVersion;
   final DateTime fetchedAt;
-  final T payload;
+  final Duration ttl;
+  final Map<String, dynamic> payload;
 }
 ```
+
+`CacheStore.readFresh` returns payload when `now < fetchedAt + ttl`; `readStale` returns payload when the entry exists but TTL has elapsed (entry kept until overwritten or corrupt).
 
 ## Chart TTLs
 

@@ -186,8 +186,11 @@ sealed class Result<T> {
 }
 
 final class Success<T> extends Result<T> {
-  const Success(this.value);
+  const Success(this.value, {this.isStale = false});
   final T value;
+
+  /// True when data comes from expired cache (offline or failed refresh).
+  final bool isStale;
 }
 
 final class Failure<T> extends Result<T> {

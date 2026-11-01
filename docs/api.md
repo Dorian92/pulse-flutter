@@ -1,6 +1,6 @@
 # External APIs
 
-Pulse uses **Binance Spot** public market data (no API key) and the **CoinGecko Demo API** (free key required). Base URLs and limits below were verified against official documentation in October 2025; re-verify before production release.
+Pulse uses **Binance Spot** public market data (no API key) and the **CoinGecko Demo API** (free key required). Base URLs and limits below were verified against official documentation in October 2025; **CoinGecko Demo 100 calls/min re-checked November 2026** ([Errors & rate limits](https://docs.coingecko.com/docs/errors-and-rate-limits)). Binance **6000 REQUEST_WEIGHT / minute** remains as documented in [REST API](https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md) via `GET /api/v3/exchangeInfo` → `rateLimits` (not re-fetched in CI; confirm before release).
 
 ## Binance Spot REST
 
