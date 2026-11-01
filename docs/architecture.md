@@ -25,9 +25,12 @@ lib/
 │   ├── error/
 │   │   ├── app_failure.dart           # sealed failure types
 │   │   └── result.dart                # sealed Result<T>
+│   ├── connectivity/
+│   │   ├── connectivity_service.dart
+│   │   └── connectivity_plus_service.dart
 │   ├── network/
 │   │   ├── api_client.dart            # http wrapper, timeouts, decode
-│   │   └── network_exception.dart
+│   │   └── api_exception.dart
 │   ├── realtime/
 │   │   ├── price_stream_service.dart  # abstract + Binance impl (see realtime.md)
 │   │   ├── price_tick.dart
@@ -45,9 +48,9 @@ lib/
 │   │   ├── app_theme.dart
 │   │   └── app_colors.dart            # semantic tokens only
 │   └── widgets/
-│       ├── async_state_view.dart      # loading / error / empty
-│       ├── price_text.dart
-│       └── stale_badge.dart           # "Updated X min ago"
+│       ├── coin_list_tile.dart
+│       ├── offline_banner.dart
+│       └── shimmer_skeleton.dart
 ├── shell/
 │   └── ui/
 │       └── main_shell.dart            # bottom nav / navigation rail
@@ -66,44 +69,52 @@ lib/
 │   │   ├── markets_event.dart
 │   │   └── markets_state.dart
 │   └── ui/
-│       ├── markets_page.dart
-│       └── widgets/
-│           └── market_list_tile.dart
+│       └── markets_page.dart
 ├── coin_detail/
 │   ├── models/
 │   │   ├── coin_detail.dart
-│   │   ├── chart_range.dart
-│   │   └── candle.dart
+│   │   ├── chart_point.dart
+│   │   ├── chart_range_config.dart
+│   │   └── price_chart_series.dart
 │   ├── repository/
 │   │   ├── coin_detail_repository.dart
 │   │   ├── coin_detail_repository_impl.dart
 │   │   └── data_sources/
 │   │       ├── coin_detail_remote_data_source.dart
-│   │       └── chart_local_data_source.dart
+│   │       └── coin_detail_local_data_source.dart
 │   ├── bloc/
 │   │   ├── coin_detail_bloc.dart
-│   │   └── ...
+│   │   ├── coin_detail_event.dart
+│   │   └── coin_detail_state.dart
 │   └── ui/
 │       ├── coin_detail_page.dart
 │       └── widgets/
+│           ├── coin_detail_header.dart
 │           └── price_chart.dart
 ├── watchlist/
 │   ├── models/
-│   │   └── watchlist_entry.dart
+│   │   └── watchlist_snapshot.dart
 │   ├── repository/
 │   │   ├── watchlist_repository.dart
-│   │   └── watchlist_repository_impl.dart
+│   │   ├── watchlist_repository_impl.dart
+│   │   └── data_sources/
+│   │       ├── watchlist_local_data_source.dart
+│   │       └── watchlist_markets_data_source.dart
 │   ├── bloc/
-│   │   └── watchlist_cubit.dart
+│   │   ├── watchlist_bloc.dart
+│   │   ├── watchlist_event.dart
+│   │   └── watchlist_state.dart
 │   └── ui/
 │       └── watchlist_page.dart
 └── settings/
     ├── models/
-    │   └── user_preferences.dart
+    │   ├── user_preferences.dart
+    │   └── display_currency.dart
     ├── repository/
     │   └── settings_repository.dart
     ├── bloc/
-    │   └── settings_cubit.dart
+    │   ├── settings_cubit.dart
+    │   └── settings_state.dart
     └── ui/
         └── settings_page.dart
 
@@ -150,6 +161,48 @@ flowchart TB
 ```
 
 **Live prices:** REST (or cache) loads the initial list; Blocs register interest with `PriceStreamService`; ticks merge into existing `Equatable` state (price, 24h change where available from ticker stream).
+
+### REST cache-first and stale fallback
+
+```mermaid
+sequenceDiagram
+  participant UI
+  participant Repo as Repository
+  participant Cache as CacheStore
+  participant Remote as Remote DS
+  UI->>Repo: load / refresh
+  Repo->>Cache: readFresh(key)
+  alt TTL valid
+    Cache-->>Repo: payload
+    Repo-->>UI: Success (isStale=false)
+  else miss or refresh forced
+    Repo->>Remote: fetch
+    alt remote OK
+      Remote-->>Repo: DTO
+      Repo->>Cache: writeJson(ttl)
+      Repo-->>UI: Success
+    else remote fail
+      Repo->>Cache: readStale(key)
+      alt stale exists
+        Repo-->>UI: Success (isStale=true, refreshError)
+      else no cache
+        Repo-->>UI: Failure
+      end
+    end
+  end
+```
+
+### Live tick merge (Markets / Detail / Watchlist)
+
+```mermaid
+flowchart LR
+  WS[Binance WS @ticker] --> PSS[PriceStreamService throttle]
+  PSS --> Coord[SubscriptionCoordinator union]
+  Coord --> Bloc[Feature Bloc]
+  Bloc -->|copyWith price| State[Equatable state]
+  State --> UI[List / detail header]
+  EUR[EURUSDT stream] --> PSS
+```
 
 ## Key decisions
 
@@ -226,6 +279,29 @@ final class RealtimeFailure extends AppFailure { /* stream disconnected */ }
 | Currency display | Settings repository provides `vsCurrency`; fiat conversion for display uses CoinGecko prices where needed; live ticks stay in USDT from Binance |
 | Testing | Fake repositories + `FakePriceStreamService`; golden tests optional for markets list |
 
+## Testing strategy
+
+Pulse keeps network out of the default test path. Production code uses constructor injection; tests swap fakes at the composition root or pass blocs into pages.
+
+| Layer | Location | Notes |
+|-------|----------|--------|
+| Unit | `test/core/**` | `Result` / `AppFailure`, `ApiClient` retries, `CacheStore` TTL, `SymbolMapper` |
+| Realtime | `test/core/realtime/**` | `FakePriceStreamService`, fake WebSocket channel, reconnect/backoff with `fake_async` |
+| Repository | `test/**/repository/**` | Mock remote + real or in-memory Hive cache |
+| Bloc | `test/**/bloc/**` | `bloc_test` happy path + failure |
+| Widget | `test/**/ui/**` | Mock blocs or `initPulseTestDependencies()` |
+| Integration-style (CI) | `test/pulse_happy_path_test.dart` | `PulseApp` + test DI; shared flow in `test/helpers/pulse_happy_path_flow.dart` |
+| Device integration (local) | `integration_test/app_test.dart` | Same flow on emulator/device; **not** in CI |
+| Visual fixtures | `tool/screenshot_capture_test.dart` | Tagged `screenshots`; writes PNGs for README / demo |
+
+**Running:** `flutter test --coverage` (CI). Live CoinGecko/Binance are optional manual checks with `--dart-define=COINGECKO_DEMO_API_KEY=...` — not required for CI.
+
+**Offline / stale UX:** When `ConnectivityService` reports offline or remote refresh fails, repositories prefer `readStale` and return `Success` with `isStale: true` (and optional `refreshError`). UI shows `OfflineBanner` / stale copy from l10n while still rendering cached rows.
+
+## Dependency injection
+
+All concrete types are registered in `lib/core/di/injection.dart` via `get_it`. Features receive interfaces through constructors; only `main` and tests call `configureDependencies` / `resetDependencies`. Tests override repositories, `PriceStreamService`, and `ConnectivityService` without touching widgets.
+
 ## Related docs
 
 - [Real-time design](realtime.md)
@@ -251,5 +327,5 @@ final class RealtimeFailure extends AppFailure { /* stream disconnected */ }
 | `mocktail` | Mockito-free mocks for repositories and HTTP |
 | `bloc_test` | Declarative Bloc/Cubit behaviour tests |
 | `flutter_test` | Widget and integration tests |
-| `connectivity_plus` (optional) | Explicit offline detection for stale UX |
+| `connectivity_plus` | Offline detection for cache-first refresh (`ConnectivityPlusService`) |
 | `package_info_plus` (optional) | About screen / debug overlay only |

@@ -121,9 +121,12 @@ void main() {
   });
 
   testWidgets('shows offline banner when stale', (tester) async {
-    final fetchedAt = DateTime.now().toUtc().subtract(
-      const Duration(minutes: 12),
-    );
+    final fetchedAt = DateTime.utc(
+      2026,
+      6,
+      1,
+      12,
+    ).subtract(const Duration(minutes: 12));
     whenListen(
       bloc,
       Stream.value(

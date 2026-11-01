@@ -7,8 +7,10 @@ import 'package:pulse/coin_detail/models/chart_point.dart';
 import 'package:pulse/coin_detail/models/coin_detail.dart';
 import 'package:pulse/coin_detail/models/price_chart_series.dart';
 import 'package:pulse/coin_detail/repository/coin_detail_repository.dart';
+import 'package:pulse/core/connectivity/connectivity_service.dart';
 import 'package:pulse/core/di/injection.dart';
 import 'package:pulse/core/error/result.dart';
+import 'package:pulse/core/realtime/price_stream_service.dart';
 import 'package:pulse/core/storage/hive_boxes.dart';
 import 'package:pulse/core/widgets/period_selector.dart';
 import 'package:pulse/markets/models/global_market_summary.dart';
@@ -17,12 +19,29 @@ import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
 import 'package:pulse/settings/repository/settings_repository.dart';
 
+import '../core/realtime/fake_price_stream_service.dart';
+
 class MockMarketsRepository extends Mock implements MarketsRepository {}
 
 class MockCoinDetailRepository extends Mock implements CoinDetailRepository {}
 
+/// Always-online connectivity for widget and integration tests.
+class FakeConnectivityService implements ConnectivityService {
+  /// Creates a connectivity stub.
+  FakeConnectivityService({this.online = true});
+
+  /// Whether [isOnline] returns true.
+  bool online;
+
+  @override
+  Future<bool> get isOnline async => online;
+}
+
 /// Boots Hive + get_it the same way as [main], with a stub markets repo.
-Future<void> initPulseTestDependencies() async {
+Future<void> initPulseTestDependencies({
+  PriceStreamService? priceStreamService,
+  ConnectivityService? connectivityService,
+}) async {
   TestWidgetsFlutterBinding.ensureInitialized();
   registerFallbackValue(ChartPeriod.oneDay);
   registerFallbackValue('bitcoin');
@@ -108,6 +127,8 @@ Future<void> initPulseTestDependencies() async {
   await configureDependencies(
     marketsRepository: marketsRepository,
     coinDetailRepository: coinDetailRepository,
+    priceStreamService: priceStreamService ?? FakePriceStreamService(),
+    connectivityService: connectivityService ?? FakeConnectivityService(),
   );
   await sl<SettingsRepository>().load();
 }
