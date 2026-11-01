@@ -140,7 +140,6 @@ Widget _marketsApp({
           return Scaffold(
             body: child,
             bottomNavigationBar: NavigationBar(
-              selectedIndex: 0,
               destinations: [
                 NavigationDestination(
                   icon: const Icon(Icons.show_chart_outlined),
@@ -231,7 +230,9 @@ CoinDetailState _coinDetailLoaded() {
 void main() {
   setUpAll(() async {
     registerFallbackValue(const MarketsRequested());
-    registerFallbackValue(CoinDetailChartRangeChanged(ChartPeriod.oneDay));
+    registerFallbackValue(
+      const CoinDetailChartRangeChanged(ChartPeriod.oneDay),
+    );
     await loadScreenshotFonts();
   });
 
