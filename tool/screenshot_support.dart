@@ -13,6 +13,9 @@ const phoneLogicalWidth = 390.0;
 const phoneLogicalHeight = 844.0;
 const phoneDevicePixelRatio = 3.0;
 
+/// Matches [MaterialApp.debugShowCheckedModeBanner] in screenshot harnesses.
+const screenshotDebugShowCheckedModeBanner = false;
+
 /// Output directory for PNGs (`SCREENSHOT_DIR` dart-define).
 String screenshotOutputDir = const String.fromEnvironment(
   'SCREENSHOT_DIR',
@@ -21,7 +24,7 @@ String screenshotOutputDir = const String.fromEnvironment(
 
 Future<void> configurePhoneSurface(WidgetTester tester) async {
   tester.view.devicePixelRatio = phoneDevicePixelRatio;
-  tester.view.physicalSize = Size(
+  tester.view.physicalSize = const Size(
     phoneLogicalWidth * phoneDevicePixelRatio,
     phoneLogicalHeight * phoneDevicePixelRatio,
   );
@@ -31,19 +34,30 @@ Future<void> configurePhoneSurface(WidgetTester tester) async {
 
 Future<void> loadScreenshotFonts() async {
   TestWidgetsFlutterBinding.ensureInitialized();
-  final regular = await _readRoboto('Roboto-Regular.ttf');
-  final medium = await _readRoboto('Roboto-Medium.ttf');
-  if (regular == null) {
-    return;
-  }
-  final loader = FontLoader('Roboto')..addFont(Future.value(regular));
-  if (medium != null) {
-    loader.addFont(Future.value(medium));
-  }
-  await loader.load();
+  await _loadFontFamily('Roboto', [
+    'Roboto-Regular.ttf',
+    'Roboto-Medium.ttf',
+    'Roboto-Bold.ttf',
+  ]);
+  await _loadFontFamily('MaterialIcons', ['MaterialIcons-Regular.otf']);
 }
 
-Future<ByteData?> _readRoboto(String fileName) async {
+Future<void> _loadFontFamily(String family, List<String> fileNames) async {
+  final loader = FontLoader(family);
+  var loadedAny = false;
+  for (final name in fileNames) {
+    final data = await _readFlutterMaterialFont(name);
+    if (data != null) {
+      loader.addFont(Future.value(data));
+      loadedAny = true;
+    }
+  }
+  if (loadedAny) {
+    await loader.load();
+  }
+}
+
+Future<ByteData?> _readFlutterMaterialFont(String fileName) async {
   final roots = <String>[
     Platform.environment['FLUTTER_ROOT'] ?? '',
     '${Platform.environment['HOME'] ?? ''}/development/flutter',
@@ -58,6 +72,18 @@ Future<ByteData?> _readRoboto(String fileName) async {
     }
   }
   return null;
+}
+
+/// Ensures [ThemeData] uses loaded Roboto files (incl. app bar title weights).
+ThemeData prepareScreenshotTheme(ThemeData theme) {
+  final textTheme = theme.textTheme.apply(fontFamily: 'Roboto');
+  return theme.copyWith(
+    textTheme: textTheme,
+    primaryTextTheme: theme.primaryTextTheme.apply(fontFamily: 'Roboto'),
+    appBarTheme: theme.appBarTheme.copyWith(
+      titleTextStyle: textTheme.titleLarge,
+    ),
+  );
 }
 
 Future<void> captureScreenshotPng(WidgetTester tester, String fileName) async {

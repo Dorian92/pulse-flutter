@@ -1,6 +1,8 @@
 @Tags(['screenshots'])
 library;
 
+import 'dart:math' as math;
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,9 +78,9 @@ MarketsSnapshot _marketsSnapshot({required DateTime fetchedAt}) {
         binanceSymbol: 'SOLUSDT',
       ),
       MarketCoin(
-        id: 'unknown-alt',
-        symbol: 'unk',
-        name: 'Unknown Alt',
+        id: 'pepe',
+        symbol: 'pepe',
+        name: 'Pepe',
         imageUrl: '',
         currentPriceEur: 0.42,
         priceChangePercent24h: -3.1,
@@ -168,8 +170,9 @@ Widget _marketsApp({
 
   return screenshotBoundary(
     child: MaterialApp.router(
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      debugShowCheckedModeBanner: screenshotDebugShowCheckedModeBanner,
+      theme: prepareScreenshotTheme(AppTheme.light()),
+      darkTheme: prepareScreenshotTheme(AppTheme.dark()),
       themeMode: themeMode,
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -180,13 +183,15 @@ Widget _marketsApp({
 }
 
 CoinDetailState _coinDetailLoaded() {
-  final points = List.generate(
-    24,
-    (i) => ChartPoint(
-      timestamp: DateTime.utc(2026, 11, 1, i),
-      priceEur: 68000 + i * 120,
-    ),
-  );
+  final start = DateTime.utc(2026, 10, 28, 8);
+  final points = List.generate(24, (i) {
+    final wiggle = math.sin(i * 0.85) * 650 + math.cos(i * 0.35) * 320;
+    final drift = i * 28.0;
+    return ChartPoint(
+      timestamp: start.add(Duration(hours: i)),
+      priceEur: 68400 + drift + wiggle,
+    );
+  });
   return CoinDetailState.loaded(
     coinId: 'bitcoin',
     detail: CoinDetail(
@@ -317,7 +322,8 @@ void main() {
       await tester.pumpWidget(
         screenshotBoundary(
           child: MaterialApp(
-            theme: AppTheme.dark(),
+            debugShowCheckedModeBanner: screenshotDebugShowCheckedModeBanner,
+            theme: prepareScreenshotTheme(AppTheme.dark()),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: const DesignGalleryPage(),
@@ -332,7 +338,8 @@ void main() {
       await tester.pumpWidget(
         screenshotBoundary(
           child: MaterialApp(
-            theme: AppTheme.dark(),
+            debugShowCheckedModeBanner: screenshotDebugShowCheckedModeBanner,
+            theme: prepareScreenshotTheme(AppTheme.dark()),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: const DesignGalleryPage(),
@@ -392,8 +399,9 @@ void main() {
       await tester.pumpWidget(
         screenshotBoundary(
           child: MaterialApp.router(
-            theme: AppTheme.light(),
-            darkTheme: AppTheme.dark(),
+            debugShowCheckedModeBanner: screenshotDebugShowCheckedModeBanner,
+            theme: prepareScreenshotTheme(AppTheme.light()),
+            darkTheme: prepareScreenshotTheme(AppTheme.dark()),
             themeMode: ThemeMode.dark,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
@@ -428,7 +436,8 @@ void main() {
       await tester.pumpWidget(
         screenshotBoundary(
           child: MaterialApp(
-            theme: AppTheme.dark(),
+            debugShowCheckedModeBanner: screenshotDebugShowCheckedModeBanner,
+            theme: prepareScreenshotTheme(AppTheme.dark()),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: CoinDetailPage(coinId: 'bitcoin', bloc: bloc),
