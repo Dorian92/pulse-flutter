@@ -18,7 +18,8 @@ class GlobalMarketSummary extends Equatable {
     );
   }
 
-  /// Total market cap in EUR when CoinGecko provides it; null otherwise.
+  /// Total market cap in the user's display currency (CoinGecko `vs_currency`
+  /// key). Field name is historical; value is USD when display currency is USD.
   final double? totalMarketCapEur;
 
   /// 24h global market cap change percentage.

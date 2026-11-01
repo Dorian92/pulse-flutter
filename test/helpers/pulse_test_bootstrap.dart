@@ -15,6 +15,7 @@ import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 class MockMarketsRepository extends Mock implements MarketsRepository {}
 
@@ -108,4 +109,5 @@ Future<void> initPulseTestDependencies() async {
     marketsRepository: marketsRepository,
     coinDetailRepository: coinDetailRepository,
   );
+  await sl<SettingsRepository>().load();
 }

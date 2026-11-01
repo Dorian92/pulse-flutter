@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -11,19 +13,42 @@ import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
+import 'package:pulse/settings/models/user_preferences.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
+import 'package:pulse/watchlist/models/watchlist_snapshot.dart';
+import 'package:pulse/watchlist/repository/watchlist_repository.dart';
 import '../../core/realtime/fake_price_stream_service.dart';
 
 class MockMarketsRepository extends Mock implements MarketsRepository {}
 
-MarketsBloc _buildBloc(MockMarketsRepository repository) {
+class MockWatchlistRepository extends Mock implements WatchlistRepository {}
+
+class MockSettingsRepository extends Mock implements SettingsRepository {}
+
+MarketsBloc _buildBloc(
+  MockMarketsRepository repository, [
+  MockWatchlistRepository? watchlistRepo,
+]) {
   final fakeStream = FakePriceStreamService();
   final coordinator = RealtimeSubscriptionCoordinator(fakeStream);
   final mapper = SymbolMapper();
+  final watchlist = watchlistRepo ?? MockWatchlistRepository();
+  final settings = MockSettingsRepository();
+  if (watchlistRepo == null) {
+    when(() => watchlist.getOrderedIds()).thenAnswer((_) async => []);
+    when(
+      () => watchlist.membershipChanges,
+    ).thenAnswer((_) => const Stream<void>.empty());
+  }
+  when(() => settings.current).thenReturn(UserPreferences.defaults);
+  when(() => settings.changes).thenAnswer((_) => const Stream.empty());
   return MarketsBloc(
     repository: repository,
     subscriptionCoordinator: coordinator,
     priceStreamService: fakeStream,
     symbolMapper: mapper,
+    watchlistRepository: watchlist,
+    settingsRepository: settings,
   );
 }
 
@@ -61,6 +86,9 @@ MarketsSnapshot _snapshot() {
 
 void main() {
   late MockMarketsRepository repository;
+  late StreamController<void> marketsMembershipController;
+  late MockWatchlistRepository marketsWatchlistRepo;
+  late List<String> watchedIdList;
 
   setUp(() {
     repository = MockMarketsRepository();
@@ -208,5 +236,77 @@ void main() {
         isA<ServerFailure>(),
       ),
     ],
+  );
+
+  blocTest<MarketsBloc, MarketsState>(
+    'watchlist filter loads watched rows from repository',
+    build: () {
+      final watchlist = MockWatchlistRepository();
+      when(
+        () => repository.loadMarkets(),
+      ).thenAnswer((_) async => Success(_snapshot()));
+      when(
+        () => watchlist.getOrderedIds(),
+      ).thenAnswer((_) async => ['bitcoin']);
+      when(() => watchlist.loadWatchlist()).thenAnswer(
+        (_) async => Success(
+          WatchlistSnapshot(
+            entries: [
+              WatchlistEntry(coinId: 'bitcoin', coin: _snapshot().coins.first),
+            ],
+          ),
+        ),
+      );
+      when(
+        () => watchlist.membershipChanges,
+      ).thenAnswer((_) => const Stream<void>.empty());
+      return _buildBloc(repository, watchlist);
+    },
+    act: (bloc) async {
+      bloc.add(const MarketsRequested());
+      await bloc.stream.firstWhere((s) => s.status == MarketsStatus.loaded);
+      bloc.add(const MarketsFilterChanged(MarketFilter.watchlist));
+      await bloc.stream.firstWhere((s) => s.visibleCoins.length == 1);
+    },
+    verify: (bloc) {
+      expect(bloc.state.visibleCoins.first.id, 'bitcoin');
+      expect(bloc.state.watchedIds, contains('bitcoin'));
+    },
+  );
+
+  blocTest<MarketsBloc, MarketsState>(
+    'membership stream refreshes watched ids',
+    build: () {
+      watchedIdList = [];
+      marketsWatchlistRepo = MockWatchlistRepository();
+      marketsMembershipController = StreamController<void>.broadcast();
+      when(
+        () => repository.loadMarkets(),
+      ).thenAnswer((_) async => Success(_snapshot()));
+      when(
+        () => marketsWatchlistRepo.getOrderedIds(),
+      ).thenAnswer((_) async => List<String>.from(watchedIdList));
+      when(
+        () => marketsWatchlistRepo.membershipChanges,
+      ).thenAnswer((_) => marketsMembershipController.stream);
+      when(
+        () => marketsWatchlistRepo.loadWatchlist(),
+      ).thenAnswer((_) async => const Success(WatchlistSnapshot(entries: [])));
+      return _buildBloc(repository, marketsWatchlistRepo);
+    },
+    act: (bloc) async {
+      bloc.add(const MarketsRequested());
+      await bloc.stream.firstWhere((s) => s.status == MarketsStatus.loaded);
+      expect(bloc.state.watchedIds, isEmpty);
+      watchedIdList.add('loser');
+      marketsMembershipController.add(null);
+      await bloc.stream.firstWhere((s) => s.watchedIds.contains('loser'));
+    },
+    tearDown: () async {
+      await marketsMembershipController.close();
+    },
+    verify: (bloc) {
+      expect(bloc.state.watchedIds, contains('loser'));
+    },
   );
 }

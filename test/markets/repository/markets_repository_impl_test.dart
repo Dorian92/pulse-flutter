@@ -8,12 +8,14 @@ import 'package:pulse/core/error/app_failure.dart';
 import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/storage/cache_store.dart';
 import 'package:pulse/core/storage/hive_boxes.dart';
+import 'package:pulse/core/storage/preferences_store.dart';
 import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/data_sources/markets_local_data_source.dart';
 import 'package:pulse/markets/repository/data_sources/markets_remote_data_source.dart';
 import 'package:pulse/markets/repository/markets_repository_impl.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 import '../../core/time/fake_clock.dart';
 
@@ -52,6 +54,7 @@ void main() {
   late MarketsLocalDataSource local;
   late MockConnectivityService connectivity;
   late MockMarketsRemoteDataSource remote;
+  late SettingsRepository settingsRepository;
   late MarketsRepositoryImpl repository;
 
   setUp(() async {
@@ -65,10 +68,18 @@ void main() {
       clock: clock,
     );
     local = MarketsLocalDataSource(cacheStore: store);
+    settingsRepository = SettingsRepository(
+      preferencesStore: PreferencesStore(
+        settingsBox: Hive.box<String>(HiveBoxes.pulseSettings),
+      ),
+      cacheStore: store,
+    );
+    await settingsRepository.load();
     repository = MarketsRepositoryImpl(
       remote: remote,
       local: local,
       connectivity: connectivity,
+      settingsRepository: settingsRepository,
     );
   });
 

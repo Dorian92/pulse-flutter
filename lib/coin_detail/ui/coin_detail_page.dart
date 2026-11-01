@@ -17,6 +17,7 @@ import 'package:pulse/core/widgets/period_selector.dart';
 import 'package:pulse/core/widgets/shimmer_skeleton.dart';
 import 'package:pulse/core/widgets/stats_grid.dart';
 import 'package:pulse/l10n/app_localizations.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 /// Coin detail screen with chart, stats, and live price.
 class CoinDetailPage extends StatelessWidget {
@@ -36,6 +37,7 @@ class CoinDetailPage extends StatelessWidget {
               subscriptionCoordinator: sl<RealtimeSubscriptionCoordinator>(),
               priceStreamService: sl<PriceStreamService>(),
               watchlistToggle: sl<WatchlistToggle>(),
+              settingsRepository: sl<SettingsRepository>(),
             );
         if (bloc == null) {
           detailBloc.add(CoinDetailStarted(coinId));

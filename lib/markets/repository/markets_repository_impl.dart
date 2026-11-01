@@ -6,6 +6,7 @@ import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/data_sources/markets_local_data_source.dart';
 import 'package:pulse/markets/repository/data_sources/markets_remote_data_source.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 /// Cache-first markets repository.
 class MarketsRepositoryImpl implements MarketsRepository {
@@ -14,17 +15,20 @@ class MarketsRepositoryImpl implements MarketsRepository {
     required MarketsRemoteDataSource remote,
     required MarketsLocalDataSource local,
     required ConnectivityService connectivity,
-    this.vsCurrency = 'eur',
+    required SettingsRepository settingsRepository,
   }) : _remote = remote,
        _local = local,
-       _connectivity = connectivity;
+       _connectivity = connectivity,
+       _settingsRepository = settingsRepository;
 
   final MarketsRemoteDataSource _remote;
   final MarketsLocalDataSource _local;
   final ConnectivityService _connectivity;
+  final SettingsRepository _settingsRepository;
 
-  /// Display / cache currency segment.
-  final String vsCurrency;
+  /// Display / cache currency segment from settings.
+  String get vsCurrency =>
+      _settingsRepository.current.displayCurrency.coingeckoCode;
 
   String get _cacheKey => _local.cacheKeyFor(vsCurrency: vsCurrency);
 

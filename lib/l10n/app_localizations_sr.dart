@@ -110,7 +110,75 @@ class AppLocalizationsSr extends AppLocalizations {
   String get watchlistEdit => 'Izmeni';
 
   @override
+  String get watchlistDone => 'Gotovo';
+
+  @override
   String get watchlistEmptyHint => 'Dodajte imovinu da je pratite ovde.';
+
+  @override
+  String get watchlistBrowseMarkets => 'Pregledaj tržišta';
+
+  @override
+  String get watchlistUndo => 'Opozovi';
+
+  @override
+  String get watchlistUnavailableCoin => 'Podaci o ceni nisu dostupni';
+
+  @override
+  String watchlistRemovedSnackbar(String coinName) {
+    return 'Uklonjeno sa liste: $coinName';
+  }
+
+  @override
+  String get settingsAppearanceSection => 'Izgled';
+
+  @override
+  String get settingsThemeSystem => 'Sistemska tema';
+
+  @override
+  String get settingsThemeLight => 'Svetla';
+
+  @override
+  String get settingsThemeDark => 'Tamna';
+
+  @override
+  String get settingsLanguageSection => 'Jezik';
+
+  @override
+  String get settingsLanguageEnglish => 'Engleski';
+
+  @override
+  String get settingsLanguageSerbian => 'Srpski (latinica)';
+
+  @override
+  String get settingsCurrencySection => 'Valuta prikaza';
+
+  @override
+  String get settingsCurrencyEur => 'Evro (EUR)';
+
+  @override
+  String get settingsCurrencyUsd => 'Američki dolar (USD)';
+
+  @override
+  String get settingsDataSection => 'Podaci';
+
+  @override
+  String get settingsClearCache => 'Obriši keširane podatke';
+
+  @override
+  String get settingsCacheCleared => 'Keš je obrisan';
+
+  @override
+  String get settingsAboutSection => 'O aplikaciji';
+
+  @override
+  String get settingsVersion => 'Verzija';
+
+  @override
+  String get settingsLicenses => 'Licence otvorenog koda';
+
+  @override
+  String get settingsGitHub => 'Pogledaj na GitHub-u';
 
   @override
   String get designGalleryTitle => 'Galerija dizajna';
@@ -316,7 +384,75 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
   String get watchlistEdit => 'Izmeni';
 
   @override
+  String get watchlistDone => 'Gotovo';
+
+  @override
   String get watchlistEmptyHint => 'Dodajte imovinu da je pratite ovde.';
+
+  @override
+  String get watchlistBrowseMarkets => 'Pregledaj tržišta';
+
+  @override
+  String get watchlistUndo => 'Opozovi';
+
+  @override
+  String get watchlistUnavailableCoin => 'Podaci o ceni nisu dostupni';
+
+  @override
+  String watchlistRemovedSnackbar(String coinName) {
+    return 'Uklonjeno sa liste: $coinName';
+  }
+
+  @override
+  String get settingsAppearanceSection => 'Izgled';
+
+  @override
+  String get settingsThemeSystem => 'Sistemska tema';
+
+  @override
+  String get settingsThemeLight => 'Svetla';
+
+  @override
+  String get settingsThemeDark => 'Tamna';
+
+  @override
+  String get settingsLanguageSection => 'Jezik';
+
+  @override
+  String get settingsLanguageEnglish => 'Engleski';
+
+  @override
+  String get settingsLanguageSerbian => 'Srpski (latinica)';
+
+  @override
+  String get settingsCurrencySection => 'Valuta prikaza';
+
+  @override
+  String get settingsCurrencyEur => 'Evro (EUR)';
+
+  @override
+  String get settingsCurrencyUsd => 'Američki dolar (USD)';
+
+  @override
+  String get settingsDataSection => 'Podaci';
+
+  @override
+  String get settingsClearCache => 'Obriši keširane podatke';
+
+  @override
+  String get settingsCacheCleared => 'Keš je obrisan';
+
+  @override
+  String get settingsAboutSection => 'O aplikaciji';
+
+  @override
+  String get settingsVersion => 'Verzija';
+
+  @override
+  String get settingsLicenses => 'Licence otvorenog koda';
+
+  @override
+  String get settingsGitHub => 'Pogledaj na GitHub-u';
 
   @override
   String get designGalleryTitle => 'Galerija dizajna';

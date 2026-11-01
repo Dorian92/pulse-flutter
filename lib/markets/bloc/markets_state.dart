@@ -18,6 +18,7 @@ final class MarketsState extends Equatable {
     this.realtimeStatus = const RealtimeStatus.offline(),
     this.liveFlashCoinId,
     this.liveFlashGeneration = 0,
+    this.watchedIds = const {},
   });
 
   /// Initial state before first load.
@@ -102,6 +103,9 @@ final class MarketsState extends Equatable {
   /// Increments on each live tick to retrigger tile flash animation.
   final int liveFlashGeneration;
 
+  /// CoinGecko ids currently on the watchlist (for star icons).
+  final Set<String> watchedIds;
+
   /// Cache timestamp for stale banner.
   DateTime? get fetchedAt => snapshot?.fetchedAt;
 
@@ -117,6 +121,7 @@ final class MarketsState extends Equatable {
     RealtimeStatus? realtimeStatus,
     String? liveFlashCoinId,
     int? liveFlashGeneration,
+    Set<String>? watchedIds,
     bool clearFailure = false,
     bool clearRefreshFailure = false,
   }) {
@@ -134,6 +139,7 @@ final class MarketsState extends Equatable {
       realtimeStatus: realtimeStatus ?? this.realtimeStatus,
       liveFlashCoinId: liveFlashCoinId ?? this.liveFlashCoinId,
       liveFlashGeneration: liveFlashGeneration ?? this.liveFlashGeneration,
+      watchedIds: watchedIds ?? this.watchedIds,
     );
   }
 
@@ -150,5 +156,6 @@ final class MarketsState extends Equatable {
     realtimeStatus,
     liveFlashCoinId,
     liveFlashGeneration,
+    watchedIds,
   ];
 }

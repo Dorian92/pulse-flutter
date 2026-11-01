@@ -18,11 +18,18 @@ import 'package:pulse/core/realtime/symbol_mapper.dart';
 import 'package:pulse/core/realtime/symbol_mapper_loader.dart';
 import 'package:pulse/core/storage/cache_store.dart';
 import 'package:pulse/core/storage/hive_boxes.dart';
+import 'package:pulse/core/storage/preferences_store.dart';
 import 'package:pulse/core/time/clock.dart';
 import 'package:pulse/markets/repository/data_sources/markets_local_data_source.dart';
 import 'package:pulse/markets/repository/data_sources/markets_remote_data_source.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
 import 'package:pulse/markets/repository/markets_repository_impl.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
+import 'package:pulse/watchlist/repository/data_sources/watchlist_local_data_source.dart';
+import 'package:pulse/watchlist/repository/data_sources/watchlist_markets_data_source.dart';
+import 'package:pulse/watchlist/repository/watchlist_repository.dart';
+import 'package:pulse/watchlist/repository/watchlist_repository_impl.dart';
+import 'package:pulse/watchlist/watchlist_toggle_adapter.dart';
 
 /// Global service locator (composition root only).
 final GetIt sl = GetIt.instance;
@@ -84,11 +91,13 @@ Future<void> configureDependencies({
   if (!sl.isRegistered<SymbolMapper>()) {
     sl.registerSingleton<SymbolMapper>(symbolMapper ?? SymbolMapper());
   }
+  _registerSettings();
   _registerRealtime(
     priceStreamService: priceStreamService,
     subscriptionCoordinator: subscriptionCoordinator,
   );
   _registerMarkets(marketsRepository: marketsRepository);
+  _registerWatchlist();
   _registerCoinDetail(
     coinDetailRepository: coinDetailRepository,
     watchlistToggle: watchlistToggle,
@@ -125,6 +134,54 @@ void _registerRealtime({
   }
 }
 
+void _registerSettings() {
+  if (!sl.isRegistered<PreferencesStore>()) {
+    sl.registerLazySingleton<PreferencesStore>(
+      () => PreferencesStore(
+        settingsBox: Hive.box<String>(HiveBoxes.pulseSettings),
+      ),
+    );
+  }
+  if (!sl.isRegistered<SettingsRepository>()) {
+    sl.registerLazySingleton<SettingsRepository>(
+      () => SettingsRepository(
+        preferencesStore: sl<PreferencesStore>(),
+        cacheStore: sl<CacheStore>(),
+      ),
+    );
+  }
+}
+
+void _registerWatchlist() {
+  if (!sl.isRegistered<WatchlistLocalDataSource>()) {
+    sl.registerLazySingleton<WatchlistLocalDataSource>(
+      () => WatchlistLocalDataSource(
+        persistBox: Hive.box<String>(HiveBoxes.pulsePersist),
+      ),
+    );
+  }
+  if (!sl.isRegistered<WatchlistMarketsDataSource>()) {
+    sl.registerLazySingleton<WatchlistMarketsDataSource>(
+      () => WatchlistMarketsDataSource(
+        apiClient: sl<ApiClient>(),
+        symbolMapper: sl<SymbolMapper>(),
+        cacheStore: sl<CacheStore>(),
+        settingsRepository: sl<SettingsRepository>(),
+      ),
+    );
+  }
+  if (!sl.isRegistered<WatchlistRepository>()) {
+    sl.registerLazySingleton<WatchlistRepository>(
+      () => WatchlistRepositoryImpl(
+        local: sl<WatchlistLocalDataSource>(),
+        marketsRepository: sl<MarketsRepository>(),
+        supplementalMarkets: sl<WatchlistMarketsDataSource>(),
+        connectivity: sl<ConnectivityService>(),
+      ),
+    );
+  }
+}
+
 void _registerMarkets({MarketsRepository? marketsRepository}) {
   if (sl.isRegistered<MarketsRepository>()) {
     return;
@@ -134,6 +191,7 @@ void _registerMarkets({MarketsRepository? marketsRepository}) {
       apiClient: sl<ApiClient>(),
       symbolMapper: sl<SymbolMapper>(),
       clock: sl<Clock>(),
+      settingsRepository: sl<SettingsRepository>(),
     ),
   );
   sl.registerLazySingleton<MarketsLocalDataSource>(
@@ -148,6 +206,7 @@ void _registerMarkets({MarketsRepository? marketsRepository}) {
       remote: sl<MarketsRemoteDataSource>(),
       local: sl<MarketsLocalDataSource>(),
       connectivity: sl<ConnectivityService>(),
+      settingsRepository: sl<SettingsRepository>(),
     ),
   );
 }
@@ -158,7 +217,9 @@ void _registerCoinDetail({
 }) {
   if (!sl.isRegistered<WatchlistToggle>()) {
     sl.registerLazySingleton<WatchlistToggle>(
-      () => watchlistToggle ?? InMemoryWatchlistToggle(),
+      () =>
+          watchlistToggle ??
+          WatchlistRepositoryToggle(sl<WatchlistRepository>()),
     );
   }
   if (sl.isRegistered<CoinDetailRepository>()) {
@@ -169,6 +230,7 @@ void _registerCoinDetail({
       apiClient: sl<ApiClient>(),
       symbolMapper: sl<SymbolMapper>(),
       clock: sl<Clock>(),
+      settingsRepository: sl<SettingsRepository>(),
     ),
   );
   sl.registerLazySingleton<CoinDetailLocalDataSource>(
@@ -183,6 +245,7 @@ void _registerCoinDetail({
       remote: sl<CoinDetailRemoteDataSource>(),
       local: sl<CoinDetailLocalDataSource>(),
       connectivity: sl<ConnectivityService>(),
+      settingsRepository: sl<SettingsRepository>(),
     ),
   );
 }

@@ -8,6 +8,7 @@ import 'package:pulse/core/error/app_failure.dart';
 import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/storage/cache_first.dart';
 import 'package:pulse/core/widgets/period_selector.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 /// Cache-first coin detail repository.
 class CoinDetailRepositoryImpl implements CoinDetailRepository {
@@ -16,17 +17,20 @@ class CoinDetailRepositoryImpl implements CoinDetailRepository {
     required CoinDetailRemoteDataSource remote,
     required CoinDetailLocalDataSource local,
     required ConnectivityService connectivity,
-    this.vsCurrency = 'eur',
+    required SettingsRepository settingsRepository,
   }) : _remote = remote,
        _local = local,
-       _connectivity = connectivity;
+       _connectivity = connectivity,
+       _settingsRepository = settingsRepository;
 
   final CoinDetailRemoteDataSource _remote;
   final CoinDetailLocalDataSource _local;
   final ConnectivityService _connectivity;
+  final SettingsRepository _settingsRepository;
 
-  /// Display / cache currency segment.
-  final String vsCurrency;
+  /// Display / cache currency segment from settings.
+  String get vsCurrency =>
+      _settingsRepository.current.displayCurrency.coingeckoCode;
 
   String _metadataKey(String coinId) =>
       _local.metadataKeyFor(coinId: coinId, vsCurrency: vsCurrency);

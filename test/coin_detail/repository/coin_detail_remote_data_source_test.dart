@@ -10,23 +10,31 @@ import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/network/api_client.dart';
 import 'package:pulse/core/realtime/symbol_mapper.dart';
 import 'package:pulse/core/widgets/period_selector.dart';
+import 'package:pulse/settings/models/user_preferences.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 import '../../core/time/fake_clock.dart';
 
 class MockApiClient extends Mock implements ApiClient {}
 
+class MockSettingsRepository extends Mock implements SettingsRepository {}
+
 void main() {
   late MockApiClient apiClient;
+  late MockSettingsRepository settings;
   late CoinDetailRemoteDataSource remote;
   late FakeClock clock;
 
   setUp(() {
     apiClient = MockApiClient();
+    settings = MockSettingsRepository();
     clock = FakeClock();
+    when(() => settings.current).thenReturn(UserPreferences.defaults);
     remote = CoinDetailRemoteDataSource(
       apiClient: apiClient,
       symbolMapper: SymbolMapper(),
       clock: clock,
+      settingsRepository: settings,
     );
   });
 

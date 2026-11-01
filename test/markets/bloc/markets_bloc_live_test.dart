@@ -11,9 +11,16 @@ import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
+import 'package:pulse/settings/models/user_preferences.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
+import 'package:pulse/watchlist/repository/watchlist_repository.dart';
 import '../../core/realtime/fake_price_stream_service.dart';
 
 class MockMarketsRepository extends Mock implements MarketsRepository {}
+
+class MockWatchlistRepository extends Mock implements WatchlistRepository {}
+
+class MockSettingsRepository extends Mock implements SettingsRepository {}
 
 void main() {
   late MockMarketsRepository repository;
@@ -63,12 +70,24 @@ void main() {
     ).thenAnswer((_) async => Success(snapshot));
   });
 
-  MarketsBloc buildBloc() => MarketsBloc(
-    repository: repository,
-    subscriptionCoordinator: coordinator,
-    priceStreamService: fakeStream,
-    symbolMapper: mapper,
-  );
+  MarketsBloc buildBloc() {
+    final watchlist = MockWatchlistRepository();
+    final settings = MockSettingsRepository();
+    when(() => watchlist.getOrderedIds()).thenAnswer((_) async => []);
+    when(
+      () => watchlist.membershipChanges,
+    ).thenAnswer((_) => const Stream<void>.empty());
+    when(() => settings.current).thenReturn(UserPreferences.defaults);
+    when(() => settings.changes).thenAnswer((_) => const Stream.empty());
+    return MarketsBloc(
+      repository: repository,
+      subscriptionCoordinator: coordinator,
+      priceStreamService: fakeStream,
+      symbolMapper: mapper,
+      watchlistRepository: watchlist,
+      settingsRepository: settings,
+    );
+  }
 
   blocTest<MarketsBloc, MarketsState>(
     'registers top binance symbols after load',

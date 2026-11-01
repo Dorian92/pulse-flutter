@@ -56,3 +56,8 @@ final class CoinDetailRealtimeStatusChanged extends CoinDetailEvent {
 final class CoinDetailWatchlistToggled extends CoinDetailEvent {
   const CoinDetailWatchlistToggled();
 }
+
+/// Display currency changed in settings.
+final class CoinDetailPreferencesChanged extends CoinDetailEvent {
+  const CoinDetailPreferencesChanged();
+}

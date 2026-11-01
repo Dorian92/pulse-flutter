@@ -17,12 +17,17 @@ import 'package:pulse/core/realtime/price_tick.dart';
 import 'package:pulse/core/realtime/realtime_status.dart';
 import 'package:pulse/core/realtime/realtime_subscription_coordinator.dart';
 import 'package:pulse/core/widgets/period_selector.dart';
+import 'package:pulse/settings/models/display_currency.dart';
+import 'package:pulse/settings/models/user_preferences.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 import '../../core/realtime/fake_price_stream_service.dart';
 
 class MockCoinDetailRepository extends Mock implements CoinDetailRepository {}
 
 class MockWatchlistToggle extends Mock implements WatchlistToggle {}
+
+class MockSettingsRepository extends Mock implements SettingsRepository {}
 
 class _RecordingCoordinator extends RealtimeSubscriptionCoordinator {
   _RecordingCoordinator() : super(_NoopPriceStream());
@@ -106,6 +111,7 @@ void main() {
   late FakePriceStreamService priceStream;
   late _RecordingCoordinator coordinator;
   late MockWatchlistToggle watchlistToggle;
+  late MockSettingsRepository settingsRepository;
 
   setUpAll(() {
     registerFallbackValue(ChartPeriod.oneDay);
@@ -117,6 +123,11 @@ void main() {
     priceStream = FakePriceStreamService();
     coordinator = _RecordingCoordinator();
     watchlistToggle = MockWatchlistToggle();
+    settingsRepository = MockSettingsRepository();
+    when(() => settingsRepository.current).thenReturn(UserPreferences.defaults);
+    when(
+      () => settingsRepository.changes,
+    ).thenAnswer((_) => const Stream.empty());
     when(
       () => watchlistToggle.isWatched('bitcoin'),
     ).thenAnswer((_) async => false);
@@ -134,6 +145,7 @@ void main() {
       subscriptionCoordinator: coordinator,
       priceStreamService: priceStream,
       watchlistToggle: watchlistToggle,
+      settingsRepository: settingsRepository,
     );
   }
 
@@ -406,6 +418,42 @@ void main() {
         () => watchlistToggle.setWatched('bitcoin', watched: true),
       ).called(1);
     },
+  );
+
+  blocTest<CoinDetailBloc, CoinDetailState>(
+    'live tick uses USDT when display currency is USD',
+    build: () {
+      when(() => settingsRepository.current).thenReturn(
+        UserPreferences.defaults.copyWith(displayCurrency: DisplayCurrency.usd),
+      );
+      return buildBloc();
+    },
+    seed: () => CoinDetailState.loaded(
+      coinId: 'bitcoin',
+      detail: _detail(),
+      chart: _chart(ChartPeriod.oneDay),
+      selectedRange: ChartPeriod.oneDay,
+      livePriceEur: 65000,
+      changePercent24h: 1,
+      realtimeStatus: const RealtimeStatus.live(),
+      isStale: false,
+      chartLoading: false,
+      isWatchlisted: false,
+    ),
+    act: (bloc) => bloc.add(
+      CoinDetailPriceTickReceived(
+        PriceTick(
+          symbol: 'BTCUSDT',
+          lastPriceUsdt: 70000,
+          lastPriceEur: 65500,
+          changePercent24h: 2.5,
+          eventTime: DateTime.utc(2026, 1, 3),
+        ),
+      ),
+    ),
+    expect: () => [
+      isA<CoinDetailState>().having((s) => s.livePriceEur, 'price', 70000),
+    ],
   );
 
   blocTest<CoinDetailBloc, CoinDetailState>(

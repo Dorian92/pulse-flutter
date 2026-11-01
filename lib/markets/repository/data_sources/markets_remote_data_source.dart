@@ -5,6 +5,7 @@ import 'package:pulse/core/time/clock.dart';
 import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/markets/models/markets_snapshot.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 /// Fetches markets list and global summary from CoinGecko.
 class MarketsRemoteDataSource {
@@ -13,18 +14,21 @@ class MarketsRemoteDataSource {
     required ApiClient apiClient,
     required SymbolMapper symbolMapper,
     required Clock clock,
-    this.vsCurrency = 'eur',
+    required SettingsRepository settingsRepository,
     this.perPage = 100,
   }) : _apiClient = apiClient,
        _symbolMapper = symbolMapper,
-       _clock = clock;
+       _clock = clock,
+       _settingsRepository = settingsRepository;
 
   final ApiClient _apiClient;
   final SymbolMapper _symbolMapper;
   final Clock _clock;
+  final SettingsRepository _settingsRepository;
 
-  /// Quote currency for CoinGecko (EUR for this phase).
-  final String vsCurrency;
+  /// Quote currency for CoinGecko from user settings.
+  String get vsCurrency =>
+      _settingsRepository.current.displayCurrency.coingeckoCode;
 
   /// Number of coins per page (max 250 on CoinGecko).
   final int perPage;
