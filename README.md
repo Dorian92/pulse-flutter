@@ -80,7 +80,7 @@ Default CI and local runs use **fakes**—no live Binance or CoinGecko.
 dart format lib test integration_test tool
 flutter analyze
 flutter test --coverage
-flutter test integration_test
+flutter test integration_test -d linux
 bash tool/check_generated.sh
 ```
 

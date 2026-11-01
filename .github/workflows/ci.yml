@@ -46,7 +46,7 @@ jobs:
           lcov --summary coverage/lcov.info | tee coverage/summary.txt
 
       - name: Integration tests
-        run: flutter test integration_test
+        run: flutter test integration_test -d linux
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
