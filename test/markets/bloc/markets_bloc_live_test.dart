@@ -74,6 +74,9 @@ void main() {
     final watchlist = MockWatchlistRepository();
     final settings = MockSettingsRepository();
     when(() => watchlist.getOrderedIds()).thenAnswer((_) async => []);
+    when(
+      () => watchlist.membershipChanges,
+    ).thenAnswer((_) => const Stream<void>.empty());
     when(() => settings.current).thenReturn(UserPreferences.defaults);
     when(() => settings.changes).thenAnswer((_) => const Stream.empty());
     return MarketsBloc(

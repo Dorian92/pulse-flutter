@@ -43,6 +43,6 @@ class SettingsCubit extends Cubit<SettingsState> {
   /// Clears TTL cache via repository.
   Future<void> clearCache() async {
     await _repository.clearCache();
-    emit(state.copyWith(cacheClearMessage: true));
+    emit(state.copyWith(cacheClearGeneration: state.cacheClearGeneration + 1));
   }
 }

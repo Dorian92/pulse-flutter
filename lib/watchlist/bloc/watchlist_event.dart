@@ -70,3 +70,7 @@ final class WatchlistSymbolMappingUpdated extends WatchlistEvent {
 final class WatchlistPreferencesChanged extends WatchlistEvent {
   const WatchlistPreferencesChanged();
 }
+
+final class WatchlistMembershipChanged extends WatchlistEvent {
+  const WatchlistMembershipChanged();
+}

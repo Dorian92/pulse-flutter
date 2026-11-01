@@ -46,12 +46,12 @@ class _SettingsPageState extends State<SettingsPage> {
     final tokens = context.pulseTokens;
 
     return BlocConsumer<SettingsCubit, SettingsState>(
+      listenWhen: (previous, current) =>
+          current.cacheClearGeneration > previous.cacheClearGeneration,
       listener: (context, state) {
-        if (state.cacheClearMessage == true) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.settingsCacheCleared)));
-        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.settingsCacheCleared)));
       },
       builder: (context, state) {
         final prefs = state.preferences;

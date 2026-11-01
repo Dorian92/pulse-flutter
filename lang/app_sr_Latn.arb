@@ -36,6 +36,7 @@
   "watchlistEmptyHint": "Dodajte imovinu da je pratite ovde.",
   "watchlistBrowseMarkets": "Pregledaj tržišta",
   "watchlistUndo": "Opozovi",
+  "watchlistUnavailableCoin": "Podaci o ceni nisu dostupni",
   "watchlistRemovedSnackbar": "Uklonjeno sa liste: {coinName}",
   "settingsAppearanceSection": "Izgled",
   "settingsThemeSystem": "Sistemska tema",

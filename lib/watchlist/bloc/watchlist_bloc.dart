@@ -45,6 +45,7 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
     on<WatchlistRealtimeStatusChanged>(_onRealtimeStatus);
     on<WatchlistSymbolMappingUpdated>(_onSymbolMappingUpdated);
     on<WatchlistPreferencesChanged>(_onPreferencesChanged);
+    on<WatchlistMembershipChanged>(_onMembershipChanged);
 
     _tickSubscription = _priceStreamService.ticks.listen(
       (tick) => add(WatchlistPriceTickReceived(tick)),
@@ -57,6 +58,9 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
     });
     _settingsSubscription = _settingsRepository.changes.listen((_) {
       add(const WatchlistPreferencesChanged());
+    });
+    _membershipSubscription = _repository.membershipChanges.listen((_) {
+      add(const WatchlistMembershipChanged());
     });
   }
 
@@ -72,7 +76,9 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
   StreamSubscription<RealtimeStatus>? _statusSubscription;
   StreamSubscription<int>? _mapperSubscription;
   StreamSubscription<UserPreferences>? _settingsSubscription;
+  StreamSubscription<void>? _membershipSubscription;
 
+  /// Maps Binance pair → index in [WatchlistState.entries] (coin rows only).
   Map<String, int> _coinIndexByBinancePair = {};
 
   DisplayCurrency get _displayCurrency =>
@@ -102,6 +108,17 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
     _emitLoadResult(result, emit, refreshAttempt: true);
   }
 
+  Future<void> _onMembershipChanged(
+    WatchlistMembershipChanged event,
+    Emitter<WatchlistState> emit,
+  ) async {
+    if (state.status == WatchlistStatus.initial) {
+      return;
+    }
+    final result = await _repository.loadWatchlist();
+    _emitLoadResult(result, emit, refreshAttempt: false);
+  }
+
   void _onEditingToggled(
     WatchlistEditingToggled event,
     Emitter<WatchlistState> emit,
@@ -113,24 +130,25 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
     WatchlistRemoveRequested event,
     Emitter<WatchlistState> emit,
   ) async {
-    final index = state.coins.indexWhere((c) => c.id == event.coinId);
+    final index = state.entries.indexWhere((e) => e.coinId == event.coinId);
     if (index < 0) {
       return;
     }
-    final coin = state.coins[index];
+    final entry = state.entries[index];
     await _repository.setWatched(event.coinId, watched: false);
-    final nextCoins = List<MarketCoin>.from(state.coins)..removeAt(index);
+    final nextEntries = List<WatchlistEntry>.from(state.entries)
+      ..removeAt(index);
     emit(
       state.copyWith(
-        coins: nextCoins,
+        entries: nextEntries,
         pendingUndo: WatchlistUndoPayload(
           coinId: event.coinId,
           index: index,
-          coin: coin,
+          entry: entry,
         ),
       ),
     );
-    _syncLiveSubscriptions(nextCoins);
+    _syncLiveSubscriptions(_coinsFromEntries(nextEntries));
   }
 
   Future<void> _onUndoRemove(
@@ -142,11 +160,11 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
       return;
     }
     await _repository.insertAt(coinId: undo.coinId, index: undo.index);
-    final nextCoins = List<MarketCoin>.from(state.coins);
-    final clamped = undo.index.clamp(0, nextCoins.length);
-    nextCoins.insert(clamped, undo.coin);
-    emit(state.copyWith(coins: nextCoins, clearPendingUndo: true));
-    _syncLiveSubscriptions(nextCoins);
+    final nextEntries = List<WatchlistEntry>.from(state.entries);
+    final clamped = undo.index.clamp(0, nextEntries.length);
+    nextEntries.insert(clamped, undo.entry);
+    emit(state.copyWith(entries: nextEntries, clearPendingUndo: true));
+    _syncLiveSubscriptions(_coinsFromEntries(nextEntries));
   }
 
   Future<void> _onReorder(
@@ -157,10 +175,10 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
       oldIndex: event.oldIndex,
       newIndex: event.newIndex,
     );
-    final coins = List<MarketCoin>.from(state.coins);
-    final item = coins.removeAt(event.oldIndex);
-    coins.insert(event.newIndex, item);
-    emit(state.copyWith(coins: coins));
+    final entries = List<WatchlistEntry>.from(state.entries);
+    final item = entries.removeAt(event.oldIndex);
+    entries.insert(event.newIndex, item);
+    emit(state.copyWith(entries: entries));
   }
 
   Future<void> _onPreferencesChanged(
@@ -174,31 +192,39 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
     WatchlistPriceTickReceived event,
     Emitter<WatchlistState> emit,
   ) {
-    if (state.coins.isEmpty) {
+    if (state.entries.isEmpty) {
       return;
     }
     if (_coinIndexByBinancePair.isEmpty) {
-      _rebuildCoinIndex(state.coins);
+      _rebuildCoinIndex(state.entries);
     }
     final tick = event.tick;
-    final coinIndex = _coinIndexByBinancePair[tick.symbol.toUpperCase()];
-    if (coinIndex == null) {
+    final entryIndex = _coinIndexByBinancePair[tick.symbol.toUpperCase()];
+    if (entryIndex == null) {
       return;
     }
-    final coins = List<MarketCoin>.from(state.coins);
-    final coin = coins[coinIndex];
+    final entry = state.entries[entryIndex];
+    final coin = entry.coin;
+    if (coin == null) {
+      return;
+    }
     final displayPrice = _displayCurrency == DisplayCurrency.usd
         ? tick.lastPriceUsdt
         : tick.lastPriceEur;
-    coins[coinIndex] = coin.copyWith(
+    final updatedCoin = coin.copyWith(
       currentPriceEur: displayPrice,
       priceChangePercent24h:
           tick.changePercent24h ?? coin.priceChangePercent24h,
       lastLiveTickAt: tick.eventTime,
     );
+    final entries = List<WatchlistEntry>.from(state.entries);
+    entries[entryIndex] = WatchlistEntry(
+      coinId: entry.coinId,
+      coin: updatedCoin,
+    );
     emit(
       state.copyWith(
-        coins: coins,
+        entries: entries,
         liveFlashCoinId: coin.id,
         liveFlashGeneration: state.liveFlashGeneration + 1,
       ),
@@ -209,15 +235,24 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
     WatchlistSymbolMappingUpdated event,
     Emitter<WatchlistState> emit,
   ) {
-    if (state.coins.isEmpty) {
+    if (state.entries.isEmpty) {
       return;
     }
-    final remapped = state.coins
-        .map((coin) => coin.withResolvedBinanceSymbol(_symbolMapper))
+    final remapped = state.entries
+        .map((entry) {
+          final coin = entry.coin;
+          if (coin == null) {
+            return entry;
+          }
+          return WatchlistEntry(
+            coinId: entry.coinId,
+            coin: coin.withResolvedBinanceSymbol(_symbolMapper),
+          );
+        })
         .toList(growable: false);
     _rebuildCoinIndex(remapped);
-    emit(state.copyWith(coins: remapped));
-    _syncLiveSubscriptions(remapped);
+    emit(state.copyWith(entries: remapped));
+    _syncLiveSubscriptions(_coinsFromEntries(remapped));
   }
 
   void _onRealtimeStatus(
@@ -234,11 +269,11 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
   }) {
     switch (result) {
       case Success(:final value, :final isStale, :final refreshError):
-        _rebuildCoinIndex(value.coins);
+        _rebuildCoinIndex(value.entries);
         emit(
           state.copyWith(
             status: WatchlistStatus.loaded,
-            coins: value.coins,
+            entries: value.entries,
             isStale: isStale,
             fetchedAt: value.fetchedAt,
             clearFailure: true,
@@ -247,7 +282,7 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
         );
         _syncLiveSubscriptions(value.coins);
       case Failure(:final error):
-        if (state.coins.isNotEmpty) {
+        if (state.entries.isNotEmpty) {
           emit(
             state.copyWith(
               status: WatchlistStatus.loaded,
@@ -260,6 +295,13 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
     }
   }
 
+  List<MarketCoin> _coinsFromEntries(List<WatchlistEntry> entries) {
+    return entries
+        .where((entry) => entry.coin != null)
+        .map((entry) => entry.coin!)
+        .toList(growable: false);
+  }
+
   void _syncLiveSubscriptions(List<MarketCoin> coins) {
     final symbols = coins
         .where((coin) => coin.binanceSymbol != null)
@@ -268,10 +310,10 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
     _subscriptionCoordinator.setSymbols(_watchlistSubscriptionToken, symbols);
   }
 
-  void _rebuildCoinIndex(List<MarketCoin> coins) {
+  void _rebuildCoinIndex(List<WatchlistEntry> entries) {
     final index = <String, int>{};
-    for (var i = 0; i < coins.length; i++) {
-      final pair = coins[i].binanceSymbol?.toUpperCase();
+    for (var i = 0; i < entries.length; i++) {
+      final pair = entries[i].coin?.binanceSymbol?.toUpperCase();
       if (pair != null) {
         index[pair] = i;
       }
@@ -285,6 +327,7 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
     _statusSubscription?.cancel();
     _mapperSubscription?.cancel();
     _settingsSubscription?.cancel();
+    _membershipSubscription?.cancel();
     _subscriptionCoordinator.removeToken(_watchlistSubscriptionToken);
     return super.close();
   }

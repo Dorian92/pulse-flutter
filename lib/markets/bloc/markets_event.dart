@@ -76,3 +76,8 @@ final class MarketsWatchlistToggled extends MarketsEvent {
 final class MarketsPreferencesChanged extends MarketsEvent {
   const MarketsPreferencesChanged();
 }
+
+/// Watchlist membership changed elsewhere (detail tab, watchlist tab).
+final class MarketsWatchlistMembershipChanged extends MarketsEvent {
+  const MarketsWatchlistMembershipChanged();
+}

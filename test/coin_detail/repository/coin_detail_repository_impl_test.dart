@@ -15,6 +15,8 @@ import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/storage/cache_store.dart';
 import 'package:pulse/core/storage/hive_boxes.dart';
 import 'package:pulse/core/widgets/period_selector.dart';
+import 'package:pulse/settings/models/user_preferences.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 import '../../core/time/fake_clock.dart';
 
@@ -22,6 +24,8 @@ class MockConnectivityService extends Mock implements ConnectivityService {}
 
 class MockCoinDetailRemoteDataSource extends Mock
     implements CoinDetailRemoteDataSource {}
+
+class MockSettingsRepository extends Mock implements SettingsRepository {}
 
 CoinDetail _sampleDetail(DateTime fetchedAt) {
   return CoinDetail(
@@ -65,6 +69,7 @@ void main() {
   late CoinDetailLocalDataSource local;
   late MockConnectivityService connectivity;
   late MockCoinDetailRemoteDataSource remote;
+  late MockSettingsRepository settingsRepository;
   late CoinDetailRepositoryImpl repository;
 
   setUp(() async {
@@ -72,6 +77,8 @@ void main() {
     clock = FakeClock(DateTime.utc(2026, 6, 1, 12));
     connectivity = MockConnectivityService();
     remote = MockCoinDetailRemoteDataSource();
+    settingsRepository = MockSettingsRepository();
+    when(() => settingsRepository.current).thenReturn(UserPreferences.defaults);
     await HiveBoxes.init(path: tempDir.path);
     store = CacheStore(
       cacheBox: Hive.box<String>(HiveBoxes.pulseCache),
@@ -82,6 +89,7 @@ void main() {
       remote: remote,
       local: local,
       connectivity: connectivity,
+      settingsRepository: settingsRepository,
     );
   });
 

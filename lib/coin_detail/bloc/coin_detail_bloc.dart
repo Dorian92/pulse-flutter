@@ -14,6 +14,9 @@ import 'package:pulse/core/realtime/price_tick.dart';
 import 'package:pulse/core/realtime/realtime_status.dart';
 import 'package:pulse/core/realtime/realtime_subscription_coordinator.dart';
 import 'package:pulse/core/widgets/period_selector.dart';
+import 'package:pulse/settings/models/display_currency.dart';
+import 'package:pulse/settings/models/user_preferences.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 part 'coin_detail_event.dart';
 part 'coin_detail_state.dart';
@@ -26,10 +29,12 @@ class CoinDetailBloc extends Bloc<CoinDetailEvent, CoinDetailState> {
     required RealtimeSubscriptionCoordinator subscriptionCoordinator,
     required PriceStreamService priceStreamService,
     required WatchlistToggle watchlistToggle,
+    required SettingsRepository settingsRepository,
   }) : _repository = repository,
        _subscriptionCoordinator = subscriptionCoordinator,
        _priceStreamService = priceStreamService,
        _watchlistToggle = watchlistToggle,
+       _settingsRepository = settingsRepository,
        super(const CoinDetailState.initial()) {
     on<CoinDetailStarted>(_onStarted);
     on<CoinDetailChartRangeChanged>(
@@ -40,6 +45,7 @@ class CoinDetailBloc extends Bloc<CoinDetailEvent, CoinDetailState> {
     on<CoinDetailPriceTickReceived>(_onPriceTick);
     on<CoinDetailRealtimeStatusChanged>(_onRealtimeStatus);
     on<CoinDetailWatchlistToggled>(_onWatchlistToggled);
+    on<CoinDetailPreferencesChanged>(_onPreferencesChanged);
 
     _tickSubscription = _priceStreamService.ticks.listen(
       (tick) => add(CoinDetailPriceTickReceived(tick)),
@@ -47,17 +53,25 @@ class CoinDetailBloc extends Bloc<CoinDetailEvent, CoinDetailState> {
     _statusSubscription = _priceStreamService.status.listen(
       (status) => add(CoinDetailRealtimeStatusChanged(status)),
     );
+    _settingsSubscription = _settingsRepository.changes.listen((_) {
+      add(const CoinDetailPreferencesChanged());
+    });
   }
 
   final CoinDetailRepository _repository;
   final RealtimeSubscriptionCoordinator _subscriptionCoordinator;
   final PriceStreamService _priceStreamService;
   final WatchlistToggle _watchlistToggle;
+  final SettingsRepository _settingsRepository;
 
   StreamSubscription<PriceTick>? _tickSubscription;
   StreamSubscription<RealtimeStatus>? _statusSubscription;
+  StreamSubscription<UserPreferences>? _settingsSubscription;
 
   String? _subscriptionToken;
+
+  DisplayCurrency get _displayCurrency =>
+      _settingsRepository.current.displayCurrency;
 
   Future<void> _onStarted(
     CoinDetailStarted event,
@@ -213,6 +227,17 @@ class CoinDetailBloc extends Bloc<CoinDetailEvent, CoinDetailState> {
     return current;
   }
 
+  Future<void> _onPreferencesChanged(
+    CoinDetailPreferencesChanged event,
+    Emitter<CoinDetailState> emit,
+  ) async {
+    final coinId = state.coinId;
+    if (coinId.isEmpty || state.detail == null) {
+      return;
+    }
+    add(CoinDetailRetryRequested());
+  }
+
   void _onPriceTick(
     CoinDetailPriceTickReceived event,
     Emitter<CoinDetailState> emit,
@@ -225,12 +250,15 @@ class CoinDetailBloc extends Bloc<CoinDetailEvent, CoinDetailState> {
         detail.binanceSymbol!.toUpperCase()) {
       return;
     }
+    final displayPrice = _displayCurrency == DisplayCurrency.usd
+        ? event.tick.lastPriceUsdt
+        : event.tick.lastPriceEur;
     emit(
       state.copyWith(
-        livePriceEur: event.tick.lastPriceEur,
+        livePriceEur: displayPrice,
         changePercent24h: event.tick.changePercent24h ?? state.changePercent24h,
         detail: detail.copyWith(
-          currentPriceEur: event.tick.lastPriceEur,
+          currentPriceEur: displayPrice,
           priceChangePercent24h:
               event.tick.changePercent24h ?? detail.priceChangePercent24h,
         ),
@@ -273,6 +301,7 @@ class CoinDetailBloc extends Bloc<CoinDetailEvent, CoinDetailState> {
   Future<void> close() {
     _tickSubscription?.cancel();
     _statusSubscription?.cancel();
+    _settingsSubscription?.cancel();
     if (_subscriptionToken != null) {
       _subscriptionCoordinator.removeToken(_subscriptionToken!);
     }

@@ -123,6 +123,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get watchlistUndo => 'Undo';
 
   @override
+  String get watchlistUnavailableCoin => 'Price data unavailable';
+
+  @override
   String watchlistRemovedSnackbar(String coinName) {
     return 'Removed $coinName from watchlist';
   }

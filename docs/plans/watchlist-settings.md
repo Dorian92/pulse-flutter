@@ -196,3 +196,12 @@ All network via mocks; `FakePriceStreamService` for live tests.
 - Background WebSocket policy beyond existing lifecycle hook.
 - Pull-to-refresh on watchlist (optional; include if trivial with repository refresh).
 - Separate `MarketCoin.currentPriceUsd` field (reuse `currentPriceEur` as vs-currency price from API to limit model churn; documented here).
+
+## Review follow-up (PR #12)
+
+- **Cross-tab sync:** `WatchlistRepository.membershipChanges` stream; `WatchlistBloc` and `MarketsBloc` subscribe and cancel in `close()`.
+- **Coin detail currency:** `SettingsRepository` drives CoinGecko `vs_currency`, cache keys, preference reload, and USD/EUR live tick merge.
+- **Data integrity:** dedupe ids on read; unavailable placeholder rows when supplemental fetch misses an id.
+- **Settings UX:** `cacheClearGeneration` re-triggers clear-cache snackbar; swipe dismiss uses `colorScheme.onError`.
+- **Cache keys:** stable sorted-id hash for `markets:by_ids`; documented in [caching.md](../caching.md).
+- **Tests:** repository merge/stale, bloc membership/ticks/undo/preferences, widget swipe/reorder/settings, markets watchlist filter, coin detail currency, membership stream mocks.

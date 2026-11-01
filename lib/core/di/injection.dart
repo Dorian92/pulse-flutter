@@ -230,6 +230,7 @@ void _registerCoinDetail({
       apiClient: sl<ApiClient>(),
       symbolMapper: sl<SymbolMapper>(),
       clock: sl<Clock>(),
+      settingsRepository: sl<SettingsRepository>(),
     ),
   );
   sl.registerLazySingleton<CoinDetailLocalDataSource>(
@@ -244,6 +245,7 @@ void _registerCoinDetail({
       remote: sl<CoinDetailRemoteDataSource>(),
       local: sl<CoinDetailLocalDataSource>(),
       connectivity: sl<ConnectivityService>(),
+      settingsRepository: sl<SettingsRepository>(),
     ),
   );
 }

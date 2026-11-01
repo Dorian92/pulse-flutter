@@ -49,6 +49,7 @@ class MarketsBloc extends Bloc<MarketsEvent, MarketsState> {
     on<MarketsSymbolMappingUpdated>(_onSymbolMappingUpdated);
     on<MarketsWatchlistToggled>(_onWatchlistToggled);
     on<MarketsPreferencesChanged>(_onPreferencesChanged);
+    on<MarketsWatchlistMembershipChanged>(_onWatchlistMembershipChanged);
 
     _tickSubscription = _priceStreamService.ticks.listen(
       (tick) => add(MarketsPriceTickReceived(tick)),
@@ -62,6 +63,10 @@ class MarketsBloc extends Bloc<MarketsEvent, MarketsState> {
     _settingsSubscription = _settingsRepository.changes.listen((_) {
       add(const MarketsPreferencesChanged());
     });
+    _watchlistMembershipSubscription = _watchlistRepository.membershipChanges
+        .listen((_) {
+          add(const MarketsWatchlistMembershipChanged());
+        });
   }
 
   static const String _marketsSubscriptionToken = 'markets';
@@ -80,6 +85,7 @@ class MarketsBloc extends Bloc<MarketsEvent, MarketsState> {
   StreamSubscription<RealtimeStatus>? _statusSubscription;
   StreamSubscription<int>? _mapperSubscription;
   StreamSubscription<UserPreferences>? _settingsSubscription;
+  StreamSubscription<void>? _watchlistMembershipSubscription;
   Map<String, int> _coinIndexByBinancePair = {};
 
   DisplayCurrency get _displayCurrency =>
@@ -136,6 +142,33 @@ class MarketsBloc extends Bloc<MarketsEvent, MarketsState> {
     Emitter<MarketsState> emit,
   ) async {
     add(const MarketsRequested());
+  }
+
+  Future<void> _onWatchlistMembershipChanged(
+    MarketsWatchlistMembershipChanged event,
+    Emitter<MarketsState> emit,
+  ) async {
+    if (state.status == MarketsStatus.initial) {
+      return;
+    }
+    final watchedIds = await _loadWatchedIds();
+    emit(state.copyWith(watchedIds: watchedIds));
+    if (state.filter == MarketFilter.watchlist) {
+      await _applyWatchlistFilter(emit);
+      return;
+    }
+    final snapshot = state.snapshot;
+    if (snapshot == null) {
+      return;
+    }
+    final visible = _applyFilters(
+      coins: snapshot.coins,
+      query: state.searchQuery,
+      filter: state.filter,
+      watchedIds: watchedIds,
+    );
+    emit(state.copyWith(visibleCoins: visible));
+    _syncLiveSubscriptions(visible);
   }
 
   Future<void> _onWatchlistToggled(
@@ -505,6 +538,7 @@ class MarketsBloc extends Bloc<MarketsEvent, MarketsState> {
     _statusSubscription?.cancel();
     _mapperSubscription?.cancel();
     _settingsSubscription?.cancel();
+    _watchlistMembershipSubscription?.cancel();
     _subscriptionCoordinator.removeToken(_marketsSubscriptionToken);
     return super.close();
   }

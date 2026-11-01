@@ -36,4 +36,9 @@ void main() {
     await dataSource.writeOrderedIds(reordered);
     expect(await dataSource.readOrderedIds(), reordered);
   });
+
+  test('deduplicates corrupt duplicate ids on read', () async {
+    await dataSource.writeOrderedIds(['bitcoin', 'bitcoin', 'ethereum']);
+    expect(await dataSource.readOrderedIds(), ['bitcoin', 'ethereum']);
+  });
 }

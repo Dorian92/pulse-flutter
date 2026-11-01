@@ -53,6 +53,7 @@
   "watchlistEmptyHint": "Add assets to track them here.",
   "watchlistBrowseMarkets": "Browse markets",
   "watchlistUndo": "Undo",
+  "watchlistUnavailableCoin": "Price data unavailable",
   "watchlistRemovedSnackbar": "Removed {coinName} from watchlist",
   "@watchlistRemovedSnackbar": {
     "placeholders": {

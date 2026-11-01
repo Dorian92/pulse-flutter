@@ -8,6 +8,7 @@ import 'package:pulse/core/network/api_client.dart';
 import 'package:pulse/core/realtime/symbol_mapper.dart';
 import 'package:pulse/core/time/clock.dart';
 import 'package:pulse/core/widgets/period_selector.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 /// Fetches coin detail metadata and chart series from CoinGecko and Binance.
 class CoinDetailRemoteDataSource {
@@ -16,17 +17,20 @@ class CoinDetailRemoteDataSource {
     required ApiClient apiClient,
     required SymbolMapper symbolMapper,
     required Clock clock,
-    this.vsCurrency = 'eur',
+    required SettingsRepository settingsRepository,
   }) : _apiClient = apiClient,
        _symbolMapper = symbolMapper,
-       _clock = clock;
+       _clock = clock,
+       _settingsRepository = settingsRepository;
 
   final ApiClient _apiClient;
   final SymbolMapper _symbolMapper;
   final Clock _clock;
+  final SettingsRepository _settingsRepository;
 
   /// Quote currency for CoinGecko calls.
-  final String vsCurrency;
+  String get vsCurrency =>
+      _settingsRepository.current.displayCurrency.coingeckoCode;
 
   /// Loads metadata for [coinId].
   Future<Result<CoinDetail>> fetchDetail(String coinId) async {
@@ -48,6 +52,7 @@ class CoinDetailRemoteDataSource {
           coinId: coinId,
           symbolMapper: _symbolMapper,
           fetchedAt: _clock.now().toUtc(),
+          vsCurrency: vsCurrency,
         );
       },
     );
@@ -83,6 +88,7 @@ class CoinDetailRemoteDataSource {
     if (eurUsdt <= 0) {
       return const Failure(ServerFailure());
     }
+    final quoteIsUsd = vsCurrency == 'usd';
 
     final params = range.binanceKlineParams;
     final klinesResult = await _apiClient.getBinanceJson<List<dynamic>>(
@@ -111,13 +117,14 @@ class CoinDetailRemoteDataSource {
           }
           final openTimeMs = raw[0] as int;
           final closeUsdt = double.parse(raw[4] as String);
+          final displayPrice = quoteIsUsd ? closeUsdt : closeUsdt / eurUsdt;
           points.add(
             ChartPoint(
               timestamp: DateTime.fromMillisecondsSinceEpoch(
                 openTimeMs,
                 isUtc: true,
               ),
-              priceEur: closeUsdt / eurUsdt,
+              priceEur: displayPrice,
             ),
           );
         }
@@ -196,6 +203,7 @@ CoinDetail parseCoinDetailFromApi(
   required String coinId,
   required SymbolMapper symbolMapper,
   required DateTime fetchedAt,
+  String vsCurrency = 'eur',
 }) {
   final marketData = json['market_data'] as Map<String, dynamic>? ?? {};
   final description = json['description'] as Map<String, dynamic>? ?? {};
@@ -208,10 +216,10 @@ CoinDetail parseCoinDetailFromApi(
       .map((url) => url.trim())
       .firstWhere((url) => url.isNotEmpty, orElse: () => '');
 
-  double? readEurOptional(String key) {
+  double? readQuoteOptional(String key) {
     final value = marketData[key];
-    if (value is Map && value['eur'] != null) {
-      return (value['eur'] as num).toDouble();
+    if (value is Map && value[vsCurrency] != null) {
+      return (value[vsCurrency] as num).toDouble();
     }
     if (value is num) {
       return value.toDouble();
@@ -219,7 +227,7 @@ CoinDetail parseCoinDetailFromApi(
     return null;
   }
 
-  final currentPriceEur = readEurOptional('current_price');
+  final currentPriceEur = readQuoteOptional('current_price');
   if (currentPriceEur == null) {
     throw const FormatException('Missing current_price in market_data');
   }
@@ -233,12 +241,12 @@ CoinDetail parseCoinDetailFromApi(
     currentPriceEur: currentPriceEur,
     priceChangePercent24h:
         (marketData['price_change_percentage_24h'] as num?)?.toDouble() ?? 0,
-    marketCapEur: readEurOptional('market_cap'),
-    volume24hEur: readEurOptional('total_volume'),
-    high24hEur: readEurOptional('high_24h'),
-    low24hEur: readEurOptional('low_24h'),
+    marketCapEur: readQuoteOptional('market_cap'),
+    volume24hEur: readQuoteOptional('total_volume'),
+    high24hEur: readQuoteOptional('high_24h'),
+    low24hEur: readQuoteOptional('low_24h'),
     circulatingSupply: (marketData['circulating_supply'] as num?)?.toDouble(),
-    athEur: readEurOptional('ath'),
+    athEur: readQuoteOptional('ath'),
     aboutTextEn: stripHtmlDescription(rawDescription),
     homepageUrl: homepageUrl.isEmpty ? null : homepageUrl,
     fetchedAt: fetchedAt,

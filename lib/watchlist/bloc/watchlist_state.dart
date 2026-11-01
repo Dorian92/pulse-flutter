@@ -7,7 +7,7 @@ enum WatchlistStatus { initial, loading, loaded, failure }
 class WatchlistState extends Equatable {
   const WatchlistState({
     required this.status,
-    required this.coins,
+    required this.entries,
     required this.isStale,
     required this.isEditing,
     required this.realtimeStatus,
@@ -21,7 +21,7 @@ class WatchlistState extends Equatable {
 
   const WatchlistState.initial()
     : status = WatchlistStatus.initial,
-      coins = const [],
+      entries = const [],
       isStale = false,
       isEditing = false,
       realtimeStatus = const RealtimeStatus.offline(),
@@ -33,7 +33,7 @@ class WatchlistState extends Equatable {
       refreshFailure = null;
 
   final WatchlistStatus status;
-  final List<MarketCoin> coins;
+  final List<WatchlistEntry> entries;
   final bool isStale;
   final bool isEditing;
   final RealtimeStatus realtimeStatus;
@@ -44,9 +44,15 @@ class WatchlistState extends Equatable {
   final int liveFlashGeneration;
   final AppFailure? refreshFailure;
 
+  /// Loaded market rows (excludes unavailable placeholders).
+  List<MarketCoin> get coins => entries
+      .where((entry) => entry.coin != null)
+      .map((entry) => entry.coin!)
+      .toList(growable: false);
+
   WatchlistState copyWith({
     WatchlistStatus? status,
-    List<MarketCoin>? coins,
+    List<WatchlistEntry>? entries,
     bool? isStale,
     bool? isEditing,
     RealtimeStatus? realtimeStatus,
@@ -62,7 +68,7 @@ class WatchlistState extends Equatable {
   }) {
     return WatchlistState(
       status: status ?? this.status,
-      coins: coins ?? this.coins,
+      entries: entries ?? this.entries,
       isStale: isStale ?? this.isStale,
       isEditing: isEditing ?? this.isEditing,
       realtimeStatus: realtimeStatus ?? this.realtimeStatus,
@@ -80,7 +86,7 @@ class WatchlistState extends Equatable {
   @override
   List<Object?> get props => [
     status,
-    coins,
+    entries,
     isStale,
     isEditing,
     realtimeStatus,

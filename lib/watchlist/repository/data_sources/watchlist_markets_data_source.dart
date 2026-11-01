@@ -1,3 +1,4 @@
+import 'package:pulse/core/util/stable_hash.dart';
 import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/network/api_client.dart';
 import 'package:pulse/core/realtime/symbol_mapper.dart';
@@ -31,8 +32,8 @@ class WatchlistMarketsDataSource {
       _settingsRepository.current.displayCurrency.coingeckoCode;
 
   String _cacheKeyFor(List<String> ids) {
-    final sorted = [...ids]..sort();
-    return 'markets:by_ids:$_vsCurrency:${sorted.join(',')}';
+    final hash = stableHashForSortedIds(ids);
+    return 'markets:by_ids:$_vsCurrency:$hash';
   }
 
   /// Loads coins for [ids] using cache-first TTL.

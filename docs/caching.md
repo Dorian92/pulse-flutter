@@ -7,7 +7,8 @@ Pulse treats cache as a **first-class product feature**: fast startup, graceful 
 | Data | Pattern | TTL | Storage key | Invalidation |
 |------|---------|-----|-------------|--------------|
 | Markets list (top ~100) | Cache-first | **10 min** | `markets:{vsCurrency}` | Pull-to-refresh bypasses TTL |
-| Coin detail metadata | Cache-first | **24 h** | `coin:{id}:meta:eur` | Background refresh on open |
+| Watchlist supplemental rows | Cache-first | **10 min** | `markets:by_ids:{vsCurrency}:{idsHash}` | Sorted-id FNV hash; refresh bypasses TTL |
+| Coin detail metadata | Cache-first | **24 h** | `coin:{id}:meta:{vsCurrency}` | Background refresh on open |
 | Coin description / links | Cache-first | **24 h** | same blob as detail | Same |
 | Chart series per range | Cache-first | see below | `chart:{id}:{range}:{vsCurrency}` | Range switch uses own key |
 | Last known prices | Persist always | n/a (timestamped) | `prices:snapshot` | Updated on REST refresh + WS flush |

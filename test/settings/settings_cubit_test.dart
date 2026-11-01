@@ -62,4 +62,13 @@ void main() {
     final prefs = await repository.load();
     expect(prefs.displayCurrency, DisplayCurrency.usd);
   });
+
+  test('clear cache increments generation for repeated snackbars', () async {
+    await cubit.load();
+    expect(cubit.state.cacheClearGeneration, 0);
+    await cubit.clearCache();
+    expect(cubit.state.cacheClearGeneration, 1);
+    await cubit.clearCache();
+    expect(cubit.state.cacheClearGeneration, 2);
+  });
 }

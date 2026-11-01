@@ -3,6 +3,9 @@ import 'package:pulse/watchlist/models/watchlist_snapshot.dart';
 
 /// Watchlist order and enriched coin rows.
 abstract class WatchlistRepository {
+  /// Fires after any membership or order mutation (add/remove/reorder/undo).
+  Stream<void> get membershipChanges;
+
   /// Ordered coin ids (local source of truth).
   Future<List<String>> getOrderedIds();
 

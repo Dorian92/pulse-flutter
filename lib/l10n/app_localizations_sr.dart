@@ -122,6 +122,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get watchlistUndo => 'Opozovi';
 
   @override
+  String get watchlistUnavailableCoin => 'Podaci o ceni nisu dostupni';
+
+  @override
   String watchlistRemovedSnackbar(String coinName) {
     return 'Uklonjeno sa liste: $coinName';
   }
@@ -391,6 +394,9 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get watchlistUndo => 'Opozovi';
+
+  @override
+  String get watchlistUnavailableCoin => 'Podaci o ceni nisu dostupni';
 
   @override
   String watchlistRemovedSnackbar(String coinName) {

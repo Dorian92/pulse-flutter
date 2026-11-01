@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:pulse/core/connectivity/connectivity_service.dart';
 import 'package:pulse/core/error/app_failure.dart';
 import 'package:pulse/core/error/result.dart';
@@ -26,6 +28,23 @@ class WatchlistRepositoryImpl implements WatchlistRepository {
   final WatchlistMarketsDataSource _supplementalMarkets;
   final ConnectivityService _connectivity;
 
+  final StreamController<void> _membershipController =
+      StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get membershipChanges => _membershipController.stream;
+
+  void _notifyMembershipChanged() {
+    if (!_membershipController.isClosed) {
+      _membershipController.add(null);
+    }
+  }
+
+  /// Closes the membership stream (tests).
+  Future<void> dispose() async {
+    await _membershipController.close();
+  }
+
   @override
   Future<List<String>> getOrderedIds() => _local.readOrderedIds();
 
@@ -43,11 +62,16 @@ class WatchlistRepositoryImpl implements WatchlistRepository {
         return;
       }
       await _local.writeOrderedIds([...ids, coinId]);
+      _notifyMembershipChanged();
+      return;
+    }
+    if (!ids.contains(coinId)) {
       return;
     }
     await _local.writeOrderedIds(
       ids.where((id) => id != coinId).toList(growable: false),
     );
+    _notifyMembershipChanged();
   }
 
   @override
@@ -63,6 +87,7 @@ class WatchlistRepositoryImpl implements WatchlistRepository {
     final item = next.removeAt(oldIndex);
     next.insert(newIndex, item);
     await _local.writeOrderedIds(next);
+    _notifyMembershipChanged();
   }
 
   @override
@@ -75,6 +100,7 @@ class WatchlistRepositoryImpl implements WatchlistRepository {
     final clamped = index.clamp(0, next.length);
     next.insert(clamped, coinId);
     await _local.writeOrderedIds(next);
+    _notifyMembershipChanged();
   }
 
   @override
@@ -92,7 +118,7 @@ class WatchlistRepositoryImpl implements WatchlistRepository {
   }) async {
     final ids = await _local.readOrderedIds();
     if (ids.isEmpty) {
-      return const Success(WatchlistSnapshot(coins: []));
+      return const Success(WatchlistSnapshot(entries: []));
     }
 
     final marketsResult = forceRefresh
@@ -145,15 +171,17 @@ class WatchlistRepositoryImpl implements WatchlistRepository {
       }
     }
 
-    final ordered = <MarketCoin>[];
+    final entries = <WatchlistEntry>[];
     for (final id in ids) {
       final coin = byId[id];
       if (coin != null) {
-        ordered.add(coin);
+        entries.add(WatchlistEntry(coinId: id, coin: coin));
+      } else {
+        entries.add(WatchlistEntry.unavailable(coinId: id));
       }
     }
 
-    final snapshot = WatchlistSnapshot(coins: ordered, fetchedAt: fetchedAt);
+    final snapshot = WatchlistSnapshot(entries: entries, fetchedAt: fetchedAt);
     if (marketsStale || supplementalStale) {
       return Success(snapshot, isStale: true, refreshError: sideError);
     }

@@ -4,32 +4,32 @@ import 'package:pulse/settings/models/user_preferences.dart';
 /// State for [SettingsCubit].
 class SettingsState extends Equatable {
   /// Creates settings state.
-  const SettingsState({required this.preferences, this.cacheClearMessage});
+  const SettingsState({
+    required this.preferences,
+    this.cacheClearGeneration = 0,
+  });
 
   /// Initial state before Hive load completes.
   const SettingsState.initial()
     : preferences = UserPreferences.defaults,
-      cacheClearMessage = null;
+      cacheClearGeneration = 0;
 
   /// Active user preferences applied to the app shell.
   final UserPreferences preferences;
 
-  /// One-shot flag after cache clear (UI snackbar).
-  final bool? cacheClearMessage;
+  /// Increments on each cache clear so listeners re-fire.
+  final int cacheClearGeneration;
 
   SettingsState copyWith({
     UserPreferences? preferences,
-    bool? cacheClearMessage,
-    bool clearCacheClearMessage = false,
+    int? cacheClearGeneration,
   }) {
     return SettingsState(
       preferences: preferences ?? this.preferences,
-      cacheClearMessage: clearCacheClearMessage
-          ? null
-          : (cacheClearMessage ?? this.cacheClearMessage),
+      cacheClearGeneration: cacheClearGeneration ?? this.cacheClearGeneration,
     );
   }
 
   @override
-  List<Object?> get props => [preferences, cacheClearMessage];
+  List<Object?> get props => [preferences, cacheClearGeneration];
 }

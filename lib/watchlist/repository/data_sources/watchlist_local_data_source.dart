@@ -30,7 +30,15 @@ class WatchlistLocalDataSource {
         await _box.delete(watchlistKey);
         return [];
       }
-      return ids.map((e) => e as String).toList(growable: false);
+      final seen = <String>{};
+      final ordered = <String>[];
+      for (final rawId in ids) {
+        final id = rawId as String;
+        if (seen.add(id)) {
+          ordered.add(id);
+        }
+      }
+      return ordered;
     } on Object {
       await _box.delete(watchlistKey);
       return [];

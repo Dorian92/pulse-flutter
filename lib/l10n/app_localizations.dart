@@ -315,6 +315,12 @@ abstract class AppLocalizations {
   /// **'Undo'**
   String get watchlistUndo;
 
+  /// No description provided for @watchlistUnavailableCoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Price data unavailable'**
+  String get watchlistUnavailableCoin;
+
   /// No description provided for @watchlistRemovedSnackbar.
   ///
   /// In en, this message translates to:

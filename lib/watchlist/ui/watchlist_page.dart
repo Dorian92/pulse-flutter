@@ -17,6 +17,7 @@ import 'package:pulse/settings/bloc/settings_cubit.dart';
 import 'package:pulse/settings/models/display_currency.dart';
 import 'package:pulse/settings/repository/settings_repository.dart';
 import 'package:pulse/watchlist/bloc/watchlist_bloc.dart';
+import 'package:pulse/watchlist/models/watchlist_snapshot.dart';
 import 'package:pulse/watchlist/repository/watchlist_repository.dart';
 
 /// Saved coins with live prices and reorder.
@@ -73,10 +74,11 @@ class _WatchlistView extends StatelessWidget {
         if (undo == null) {
           return;
         }
+        final name = undo.entry.coin?.name ?? undo.coinId;
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.watchlistRemovedSnackbar(undo.coin.name)),
+            content: Text(l10n.watchlistRemovedSnackbar(name)),
             action: SnackBarAction(
               label: l10n.watchlistUndo,
               onPressed: () {
@@ -111,7 +113,7 @@ class _WatchlistView extends StatelessWidget {
                         ),
                       ),
                       TextButton(
-                        onPressed: state.coins.isEmpty
+                        onPressed: state.entries.isEmpty
                             ? null
                             : () => context.read<WatchlistBloc>().add(
                                 const WatchlistEditingToggled(),
@@ -147,7 +149,7 @@ class _WatchlistView extends StatelessWidget {
   ) {
     final tokens = context.pulseTokens;
 
-    if (state.status == WatchlistStatus.loading && state.coins.isEmpty) {
+    if (state.status == WatchlistStatus.loading && state.entries.isEmpty) {
       return ListView.separated(
         padding: EdgeInsets.all(tokens.spacingMd),
         itemCount: 6,
@@ -156,7 +158,7 @@ class _WatchlistView extends StatelessWidget {
       );
     }
 
-    if (state.status == WatchlistStatus.failure && state.coins.isEmpty) {
+    if (state.status == WatchlistStatus.failure && state.entries.isEmpty) {
       return Center(
         child: Padding(
           padding: EdgeInsets.all(tokens.spacingLg),
@@ -180,7 +182,7 @@ class _WatchlistView extends StatelessWidget {
       );
     }
 
-    if (state.coins.isEmpty) {
+    if (state.entries.isEmpty) {
       return Center(
         child: Padding(
           padding: EdgeInsets.all(tokens.spacingLg),
@@ -202,7 +204,7 @@ class _WatchlistView extends StatelessWidget {
     if (state.isEditing) {
       return ReorderableListView.builder(
         padding: EdgeInsets.all(tokens.spacingMd),
-        itemCount: state.coins.length,
+        itemCount: state.entries.length,
         onReorder: (oldIndex, newIndex) {
           if (newIndex > oldIndex) {
             newIndex -= 1;
@@ -212,17 +214,19 @@ class _WatchlistView extends StatelessWidget {
           );
         },
         itemBuilder: (context, index) {
-          final coin = state.coins[index];
-          return _WatchlistTile(
-            key: ValueKey(coin.id),
-            coin: coin,
+          final entry = state.entries[index];
+          return _WatchlistEntryTile(
+            key: ValueKey(entry.coinId),
+            entry: entry,
             locale: locale,
             currency: currency,
-            liveFlashToken: coin.id == state.liveFlashCoinId
+            liveFlashToken: entry.coin?.id == state.liveFlashCoinId
                 ? state.liveFlashGeneration
                 : null,
             dismissible: false,
-            onTap: () => context.push(AppRoutes.coinDetailPath(coin.id)),
+            onTap: entry.isUnavailable
+                ? null
+                : () => context.push(AppRoutes.coinDetailPath(entry.coinId)),
           );
         },
       );
@@ -230,25 +234,29 @@ class _WatchlistView extends StatelessWidget {
 
     return ListView.separated(
       padding: EdgeInsets.all(tokens.spacingMd),
-      itemCount: state.coins.length,
+      itemCount: state.entries.length,
       separatorBuilder: (_, __) => SizedBox(height: tokens.spacingSm),
       itemBuilder: (context, index) {
-        final coin = state.coins[index];
-        return _WatchlistTile(
-          key: ValueKey(coin.id),
-          coin: coin,
+        final entry = state.entries[index];
+        return _WatchlistEntryTile(
+          key: ValueKey(entry.coinId),
+          entry: entry,
           locale: locale,
           currency: currency,
-          liveFlashToken: coin.id == state.liveFlashCoinId
+          liveFlashToken: entry.coin?.id == state.liveFlashCoinId
               ? state.liveFlashGeneration
               : null,
-          dismissible: true,
-          onDismissed: () {
-            context.read<WatchlistBloc>().add(
-              WatchlistRemoveRequested(coin.id),
-            );
-          },
-          onTap: () => context.push(AppRoutes.coinDetailPath(coin.id)),
+          dismissible: !entry.isUnavailable,
+          onDismissed: entry.isUnavailable
+              ? null
+              : () {
+                  context.read<WatchlistBloc>().add(
+                    WatchlistRemoveRequested(entry.coinId),
+                  );
+                },
+          onTap: entry.isUnavailable
+              ? null
+              : () => context.push(AppRoutes.coinDetailPath(entry.coinId)),
         );
       },
     );
@@ -260,29 +268,51 @@ class _WatchlistView extends StatelessWidget {
   }
 }
 
-class _WatchlistTile extends StatelessWidget {
-  const _WatchlistTile({
+class _WatchlistEntryTile extends StatelessWidget {
+  const _WatchlistEntryTile({
     required super.key,
-    required this.coin,
+    required this.entry,
     required this.locale,
     required this.currency,
     required this.liveFlashToken,
     required this.dismissible,
-    required this.onTap,
+    this.onTap,
     this.onDismissed,
   });
 
-  final MarketCoin coin;
+  final WatchlistEntry entry;
   final String locale;
   final DisplayCurrency currency;
   final int? liveFlashToken;
   final bool dismissible;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final VoidCallback? onDismissed;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    if (entry.isUnavailable) {
+      final placeholder = ListTile(
+        title: Text(entry.coinId),
+        subtitle: Text(l10n.watchlistUnavailableCoin),
+        trailing: dismissible
+            ? IconButton(icon: const Icon(Icons.close), onPressed: onDismissed)
+            : null,
+      );
+      if (!dismissible || onDismissed == null) {
+        return placeholder;
+      }
+      return Dismissible(
+        key: ValueKey('dismiss-${entry.coinId}'),
+        direction: DismissDirection.endToStart,
+        background: _swipeBackground(context, l10n),
+        onDismissed: (_) => onDismissed!(),
+        child: placeholder,
+      );
+    }
+
+    final coin = entry.coin!;
     final tile = CoinListTile(
       name: coin.name,
       symbol: coin.symbol,
@@ -311,17 +341,21 @@ class _WatchlistTile extends StatelessWidget {
     return Dismissible(
       key: ValueKey('dismiss-${coin.id}'),
       direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
-        color: Theme.of(context).colorScheme.error,
-        child: Text(
-          l10n.removeActionLabel,
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
+      background: _swipeBackground(context, l10n),
       onDismissed: (_) => onDismissed!(),
       child: tile,
+    );
+  }
+
+  Widget _swipeBackground(BuildContext context, AppLocalizations l10n) {
+    return Container(
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.only(right: 24),
+      color: Theme.of(context).colorScheme.error,
+      child: Text(
+        l10n.removeActionLabel,
+        style: TextStyle(color: Theme.of(context).colorScheme.onError),
+      ),
     );
   }
 }
