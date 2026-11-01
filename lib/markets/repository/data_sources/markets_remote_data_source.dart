@@ -1,4 +1,3 @@
-import 'package:pulse/settings/repository/settings_repository.dart';
 import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/network/api_client.dart';
 import 'package:pulse/core/realtime/symbol_mapper.dart';
@@ -6,6 +5,7 @@ import 'package:pulse/core/time/clock.dart';
 import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/markets/models/markets_snapshot.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 /// Fetches markets list and global summary from CoinGecko.
 class MarketsRemoteDataSource {

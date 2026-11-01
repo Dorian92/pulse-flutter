@@ -47,9 +47,7 @@ class SettingsRepository {
   /// Persists and broadcasts [preferences].
   Future<void> save(UserPreferences preferences) async {
     _current = preferences;
-    await _preferencesStore.writeJson(
-      preferences.toJson(schemaVersion: schemaVersion),
-    );
+    await _preferencesStore.writeJson(preferences.toJson());
     _changes.add(_current);
   }
 

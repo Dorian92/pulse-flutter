@@ -284,7 +284,6 @@ class _WatchlistTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final tile = CoinListTile(
-      compactSparkline: false,
       name: coin.name,
       symbol: coin.symbol,
       priceText: PulseFormatters.formatDisplayPrice(

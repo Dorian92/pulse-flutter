@@ -199,7 +199,6 @@ class _MarketsViewState extends State<_MarketsView> {
                 children: [
                   FilterChipsRow(
                     selected: state.filter,
-                    includeWatchlistChip: true,
                     onSelected: (filter) {
                       context.read<MarketsBloc>().add(
                         MarketsFilterChanged(filter),

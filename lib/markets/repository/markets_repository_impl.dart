@@ -1,12 +1,12 @@
 import 'package:pulse/core/connectivity/connectivity_service.dart';
 import 'package:pulse/core/error/app_failure.dart';
-import 'package:pulse/settings/repository/settings_repository.dart';
 import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/storage/cache_first.dart';
 import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/data_sources/markets_local_data_source.dart';
 import 'package:pulse/markets/repository/data_sources/markets_remote_data_source.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 
 /// Cache-first markets repository.
 class MarketsRepositoryImpl implements MarketsRepository {

@@ -13,7 +13,6 @@ import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
 import 'package:pulse/settings/models/user_preferences.dart';
 import 'package:pulse/settings/repository/settings_repository.dart';
-import 'package:pulse/settings/repository/settings_repository.dart';
 import 'package:pulse/watchlist/repository/watchlist_repository.dart';
 import '../../core/realtime/fake_price_stream_service.dart';
 

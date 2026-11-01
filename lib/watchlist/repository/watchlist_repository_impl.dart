@@ -116,7 +116,7 @@ class WatchlistRepositoryImpl implements WatchlistRepository {
         }
         final online = await _connectivity.isOnline;
         if (!online) {
-          return Failure(const NetworkFailure(offline: true));
+          return const Failure(NetworkFailure(offline: true));
         }
         return Failure(error);
     }
