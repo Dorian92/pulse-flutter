@@ -10,6 +10,10 @@ import 'package:pulse/core/realtime/symbol_mapper.dart';
 import 'package:pulse/core/storage/cache_store.dart';
 import 'package:pulse/core/storage/hive_boxes.dart';
 import 'package:pulse/core/time/clock.dart';
+import 'package:pulse/markets/repository/data_sources/markets_local_data_source.dart';
+import 'package:pulse/markets/repository/data_sources/markets_remote_data_source.dart';
+import 'package:pulse/markets/repository/markets_repository.dart';
+import 'package:pulse/markets/repository/markets_repository_impl.dart';
 
 /// Global service locator (composition root only).
 final GetIt sl = GetIt.instance;
@@ -26,6 +30,7 @@ Future<void> configureDependencies({
   Clock? clock,
   CacheStore? cacheStore,
   SymbolMapper? symbolMapper,
+  MarketsRepository? marketsRepository,
 }) async {
   if (!sl.isRegistered<AppConfig>()) {
     sl.registerSingleton<AppConfig>(appConfig ?? const AppConfig());
@@ -66,6 +71,34 @@ Future<void> configureDependencies({
   if (!sl.isRegistered<SymbolMapper>()) {
     sl.registerSingleton<SymbolMapper>(symbolMapper ?? const SymbolMapper());
   }
+  _registerMarkets(marketsRepository: marketsRepository);
+}
+
+void _registerMarkets({MarketsRepository? marketsRepository}) {
+  if (sl.isRegistered<MarketsRepository>()) {
+    return;
+  }
+  sl.registerLazySingleton<MarketsRemoteDataSource>(
+    () => MarketsRemoteDataSource(
+      apiClient: sl<ApiClient>(),
+      symbolMapper: sl<SymbolMapper>(),
+      clock: sl<Clock>(),
+    ),
+  );
+  sl.registerLazySingleton<MarketsLocalDataSource>(
+    () => MarketsLocalDataSource(cacheStore: sl<CacheStore>()),
+  );
+  if (marketsRepository != null) {
+    sl.registerLazySingleton<MarketsRepository>(() => marketsRepository);
+    return;
+  }
+  sl.registerLazySingleton<MarketsRepository>(
+    () => MarketsRepositoryImpl(
+      remote: sl<MarketsRemoteDataSource>(),
+      local: sl<MarketsLocalDataSource>(),
+      connectivity: sl<ConnectivityService>(),
+    ),
+  );
 }
 
 /// Clears registrations (for tests).

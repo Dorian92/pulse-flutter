@@ -398,6 +398,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Please try again.'**
   String get errorUnknown;
+
+  /// No description provided for @marketsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search coins'**
+  String get marketsSearchHint;
+
+  /// No description provided for @marketsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get marketsRetry;
+
+  /// No description provided for @marketsEmptyFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'No coins match this filter.'**
+  String get marketsEmptyFilter;
+
+  /// No description provided for @marketsNoSearchResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No coins match your search.'**
+  String get marketsNoSearchResults;
 }
 
 class _AppLocalizationsDelegate

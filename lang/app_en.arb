@@ -73,5 +73,9 @@
   "errorParsing": "Could not read the server response.",
   "errorNotFound": "That item could not be found.",
   "errorCache": "Local storage error. Try refreshing the data.",
-  "errorUnknown": "Something went wrong. Please try again."
+  "errorUnknown": "Something went wrong. Please try again.",
+  "marketsSearchHint": "Search coins",
+  "marketsRetry": "Try again",
+  "marketsEmptyFilter": "No coins match this filter.",
+  "marketsNoSearchResults": "No coins match your search."
 }

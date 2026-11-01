@@ -23,29 +23,37 @@ class FilterChipsRow extends StatelessWidget {
   const FilterChipsRow({
     required this.selected,
     required this.onSelected,
+    this.includeWatchlistChip = true,
     super.key,
   });
 
   final MarketFilter selected;
   final ValueChanged<MarketFilter> onSelected;
 
+  /// When false, hides the watchlist chip (markets screen until step 7).
+  final bool includeWatchlistChip;
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.pulseTokens;
     final l10n = AppLocalizations.of(context)!;
+    final filters = includeWatchlistChip
+        ? MarketFilter.values
+        : MarketFilter.values
+              .where((f) => f != MarketFilter.watchlist)
+              .toList(growable: false);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          for (final filter in MarketFilter.values) ...[
+          for (final filter in filters) ...[
             _FilterChip(
               label: filter.label(l10n),
               selected: filter == selected,
               onTap: () => onSelected(filter),
             ),
-            if (filter != MarketFilter.watchlist)
-              SizedBox(width: tokens.spacingSm),
+            if (filter != filters.last) SizedBox(width: tokens.spacingSm),
           ],
         ],
       ),

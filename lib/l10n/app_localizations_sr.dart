@@ -168,6 +168,18 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get errorUnknown => 'Došlo je do greške. Pokušajte ponovo.';
+
+  @override
+  String get marketsSearchHint => 'Pretrazi koini';
+
+  @override
+  String get marketsRetry => 'Pokušaj ponovo';
+
+  @override
+  String get marketsEmptyFilter => 'Nema koina za ovaj filter.';
+
+  @override
+  String get marketsNoSearchResults => 'Nema rezultata pretrage.';
 }
 
 /// The translations for Serbian, using the Latin script (`sr_Latn`).
@@ -334,4 +346,16 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get errorUnknown => 'Došlo je do greške. Pokušajte ponovo.';
+
+  @override
+  String get marketsSearchHint => 'Pretrazi koini';
+
+  @override
+  String get marketsRetry => 'Pokušaj ponovo';
+
+  @override
+  String get marketsEmptyFilter => 'Nema koina za ovaj filter.';
+
+  @override
+  String get marketsNoSearchResults => 'Nema rezultata pretrage.';
 }

@@ -8,7 +8,13 @@ import 'package:pulse/markets/ui/markets_page.dart';
 import 'package:pulse/settings/ui/settings_page.dart';
 import 'package:pulse/watchlist/ui/watchlist_page.dart';
 
+import 'helpers/pulse_test_bootstrap.dart';
+
 void main() {
+  setUp(() async {
+    await initPulseTestDependencies();
+  });
+
   group('PulseApp smoke', () {
     testWidgets('boots and shows markets tab', (tester) async {
       await tester.pumpWidget(PulseApp());
