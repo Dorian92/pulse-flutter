@@ -5,6 +5,7 @@ import 'package:pulse/core/config/app_config.dart';
 import 'package:pulse/core/connectivity/connectivity_plus_service.dart';
 import 'package:pulse/core/connectivity/connectivity_service.dart';
 import 'package:pulse/core/network/api_client.dart';
+import 'package:pulse/core/network/pulse_http_client.dart';
 import 'package:pulse/core/realtime/symbol_mapper.dart';
 import 'package:pulse/core/storage/cache_store.dart';
 import 'package:pulse/core/storage/hive_boxes.dart';
@@ -15,7 +16,9 @@ final GetIt sl = GetIt.instance;
 
 /// Registers core dependencies. Call after [HiveBoxes.init].
 ///
-/// Tests may pass overrides, or call [resetDependencies] first.
+/// Intended to run once per process (from [main] or tests). Calling again without
+/// [resetDependencies] is a no-op: the first registration wins and later
+/// overrides are ignored. Tests must call [resetDependencies] before re-configuring.
 Future<void> configureDependencies({
   AppConfig? appConfig,
   http.Client? httpClient,
@@ -32,7 +35,7 @@ Future<void> configureDependencies({
   }
   if (!sl.isRegistered<http.Client>()) {
     sl.registerLazySingleton<http.Client>(
-      () => httpClient ?? http.Client(),
+      () => httpClient ?? createPulseHttpClient(sl<AppConfig>()),
       dispose: (client) => client.close(),
     );
   }

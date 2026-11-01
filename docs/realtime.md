@@ -144,6 +144,8 @@ sealed class RealtimeStatus {
 
 ## Integration with Blocs
 
+**Symbol mapping (step 3 stub):** `SymbolMapper` resolves only a small static CoinGecko id → Binance `*USDT` map (plus test overrides). Unknown ids return `null` so the UI shows the **“no live feed”** badge; step 4+ will build the full map from Binance `exchangeInfo`.
+
 **MarketsBloc**
 
 - On `MarketsLoaded`, call `setDesiredSymbols(visibleBinanceSymbols)` (viewport-aware: only IDs rendered + buffer).

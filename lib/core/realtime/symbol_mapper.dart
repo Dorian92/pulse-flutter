@@ -23,24 +23,13 @@ class SymbolMapper {
 
   /// Returns a Binance *USDT symbol (e.g. `BTCUSDT`) or null when no pair is known.
   ///
-  /// Uses [_knownIds], then [overrides], then `{coinGeckoSymbol}USDT` when
-  /// [coinGeckoSymbol] is provided.
-  String? binanceUsdtSymbolFor({
-    required String coinGeckoId,
-    String? coinGeckoSymbol,
-  }) {
+  /// Only [_knownIds] and [overrides] are consulted until step 4+ builds a map
+  /// from Binance `exchangeInfo` (unknown ids show the “no live feed” badge).
+  String? binanceUsdtSymbolFor({required String coinGeckoId}) {
     final override = _overrides[coinGeckoId];
     if (override != null) {
       return override;
     }
-    final known = _knownIds[coinGeckoId];
-    if (known != null) {
-      return known;
-    }
-    final symbol = coinGeckoSymbol?.trim();
-    if (symbol == null || symbol.isEmpty) {
-      return null;
-    }
-    return '${symbol.toUpperCase()}USDT';
+    return _knownIds[coinGeckoId];
   }
 }

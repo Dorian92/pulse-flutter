@@ -4,6 +4,9 @@ import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/storage/cache_store.dart';
 
 /// Cache-first load: fresh cache, else network, else stale cache with [Success.isStale].
+///
+/// A fresh cache hit returns immediately and does **not** trigger a background
+/// network refresh; repositories can implement stale-while-revalidate separately.
 Future<Result<T>> fetchCacheFirst<T>({
   required CacheStore cache,
   required ConnectivityService connectivity,

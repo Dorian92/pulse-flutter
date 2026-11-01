@@ -95,11 +95,11 @@ enum ApiBase { coinGecko, binance }
 
 **Behaviour**
 
-- Connect timeout **15 s**, receive timeout **30 s** (configurable via `AppConfig`).
-- Decode UTF-8 body as JSON; `ParsingFailure` on invalid JSON.
+- Connect timeout **15 s** on `HttpClient.connectionTimeout` ([createPulseHttpClient]); receive timeout **30 s** on each GET future in `ApiClient`.
+- Decode UTF-8 body as JSON; `ParsingFailure` on invalid JSON or decoder throws.
 - Map status codes → `AppFailure` (see table below).
-- **Retry:** up to 3 attempts with exponential backoff (500 ms × 2^n) on timeout, socket errors, **502/503/504**, and **429** when `retryAfter` is absent or elapsed; honour `Retry-After` when present.
-- **Debug logging:** `dart:developer` `log` for request method/path/status (no API keys, no bodies).
+- **Retry:** up to 3 attempts with exponential backoff (500 ms × 2^n) on timeout, socket errors, **502/503/504**, and **429** when `Retry-After` is absent or ≤ **10 s**; larger `Retry-After` fails fast without sleeping.
+- **Debug logging:** injectable logger defaulting to `dart:developer` `log` (no Flutter imports).
 
 ### Config (`lib/core/config/`)
 
@@ -207,14 +207,11 @@ class SymbolMapper {
   const SymbolMapper({Map<String, String>? overrides});
 
   /// Returns Binance *USDT symbol (e.g. `BTCUSDT`) or null when no live pair.
-  String? binanceUsdtSymbolFor({
-    required String coinGeckoId,
-    String? coinGeckoSymbol,
-  });
+  String? binanceUsdtSymbolFor({required String coinGeckoId});
 }
 ```
 
-Static map for common IDs (BTC, ETH, …); fallback `{SYMBOL}USDT` when `coinGeckoSymbol` is provided and non-empty; otherwise null.
+Static map for common IDs (BTC, ETH, …) plus test [overrides]; returns `null` when unknown (UI shows “no live feed”). Step 4+ will populate from Binance `exchangeInfo`.
 
 ### DI (`lib/core/di/injection.dart`)
 
@@ -275,7 +272,6 @@ lib/core/
   realtime/symbol_mapper.dart
   storage/cache_store.dart
   storage/cache_first.dart
-  storage/cache_envelope.dart
   storage/hive_boxes.dart
   time/clock.dart
 

@@ -9,17 +9,7 @@ void main() {
     expect(mapper.binanceUsdtSymbolFor(coinGeckoId: 'ethereum'), 'ETHUSDT');
   });
 
-  test('falls back to uppercase symbol USDT', () {
-    expect(
-      mapper.binanceUsdtSymbolFor(
-        coinGeckoId: 'unknown-coin',
-        coinGeckoSymbol: 'abc',
-      ),
-      'ABCUSDT',
-    );
-  });
-
-  test('returns null when no mapping', () {
+  test('returns null when id is not in the static map', () {
     expect(mapper.binanceUsdtSymbolFor(coinGeckoId: 'obscure-id'), isNull);
   });
 

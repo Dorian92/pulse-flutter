@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:pulse/core/config/api_keys.dart';
 import 'package:pulse/core/config/app_config.dart';
@@ -32,7 +31,10 @@ class ApiClient {
   }) : _httpClient = httpClient,
        _config = config,
        _clock = clock,
-       _log = log ?? _debugLog;
+       _log = log ?? _defaultLog;
+
+  /// Maximum seconds to sleep on `Retry-After` before retrying; larger values fail fast.
+  static const int maxRetryAfterSleepSeconds = 10;
 
   final http.Client _httpClient;
   final AppConfig _config;
@@ -53,21 +55,18 @@ class ApiClient {
 
     for (var attempt = 0; attempt < attempts; attempt++) {
       try {
-        final response = await _httpClient
-            .get(uri, headers: headers)
-            .timeout(
-              _config.connectTimeout + _config.receiveTimeout,
-              onTimeout: () {
-                throw ApiException(const TimeoutFailure());
-              },
-            );
+        final response = await _get(uri, headers: headers);
 
         _log('GET ${uri.path} → ${response.statusCode}');
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
           try {
             final decoded = json.decode(response.body);
-            return Success(decode(decoded));
+            try {
+              return Success(decode(decoded));
+            } on Object catch (error) {
+              return Failure(ParsingFailure(cause: error));
+            }
           } on Object catch (error) {
             return Failure(ParsingFailure(cause: error));
           }
@@ -95,13 +94,13 @@ class ApiClient {
           continue;
         }
         return const Failure(NetworkFailure(offline: true));
-      } on HttpException catch (error) {
+      } on HttpException {
         const failure = NetworkFailure();
         if (_shouldRetry(failure, attempt, attempts)) {
           await _delayBeforeRetry(failure, attempt);
           continue;
         }
-        return Failure(UnknownFailure(cause: error));
+        return const Failure(NetworkFailure());
       } on TimeoutException {
         const failure = TimeoutFailure();
         if (_shouldRetry(failure, attempt, attempts)) {
@@ -153,6 +152,17 @@ class ApiClient {
       decode: decode,
       maxAttempts: maxAttempts,
     );
+  }
+
+  Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) {
+    return _httpClient
+        .get(uri, headers: headers)
+        .timeout(
+          _config.receiveTimeout,
+          onTimeout: () {
+            throw ApiException(const TimeoutFailure());
+          },
+        );
   }
 
   Uri _buildUri(
@@ -218,7 +228,9 @@ class ApiClient {
       NetworkFailure() => true,
       ServerFailure(:final statusCode) =>
         statusCode == 502 || statusCode == 503 || statusCode == 504,
-      RateLimitFailure() => true,
+      RateLimitFailure(:final retryAfterSeconds) =>
+        retryAfterSeconds == null ||
+            retryAfterSeconds <= maxRetryAfterSleepSeconds,
       _ => false,
     };
   }
@@ -235,9 +247,7 @@ class ApiClient {
     await Future<void>.delayed(Duration(milliseconds: backoffMs));
   }
 
-  static void _debugLog(String message) {
-    if (kDebugMode) {
-      developer.log(message, name: 'ApiClient');
-    }
+  static void _defaultLog(String message) {
+    developer.log(message, name: 'ApiClient');
   }
 }

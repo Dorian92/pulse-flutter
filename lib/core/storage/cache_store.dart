@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:hive/hive.dart';
 import 'package:pulse/core/time/clock.dart';
@@ -35,8 +36,11 @@ class CacheEnvelope {
   /// JSON-serializable payload.
   final Map<String, dynamic> payload;
 
-  /// Whether [at] is before expiry.
-  bool isFreshAt(DateTime at) => at.isBefore(fetchedAt.add(ttl));
+  /// Whether [atUtc] is before expiry ([fetchedAt] and [atUtc] compared in UTC).
+  bool isFreshAt(DateTime atUtc) {
+    final expiry = fetchedAt.toUtc().add(ttl);
+    return atUtc.isBefore(expiry);
+  }
 
   /// Serializes to JSON.
   Map<String, dynamic> toJson() {
@@ -52,12 +56,17 @@ class CacheEnvelope {
 /// Generic TTL key/value store on Hive.
 class CacheStore {
   /// Creates a store backed by [cacheBox].
-  CacheStore({required Box<String> cacheBox, required Clock clock})
-    : _box = cacheBox,
-      _clock = clock;
+  CacheStore({
+    required Box<String> cacheBox,
+    required Clock clock,
+    void Function(String message)? log,
+  }) : _box = cacheBox,
+       _clock = clock,
+       _log = log ?? _defaultLog;
 
   final Box<String> _box;
   final Clock _clock;
+  final void Function(String message) _log;
 
   /// Persists [payload] under [key] with [ttl].
   Future<void> writeJson({
@@ -84,7 +93,7 @@ class CacheStore {
     if (envelope == null) {
       return null;
     }
-    if (envelope.isFreshAt(_clock.now())) {
+    if (envelope.isFreshAt(_clock.now().toUtc())) {
       return envelope.payload;
     }
     return null;
@@ -99,7 +108,7 @@ class CacheStore {
     if (envelope == null) {
       return null;
     }
-    if (!envelope.isFreshAt(_clock.now())) {
+    if (!envelope.isFreshAt(_clock.now().toUtc())) {
       return envelope.payload;
     }
     return null;
@@ -125,12 +134,20 @@ class CacheStore {
       final envelope = CacheEnvelope.fromJson(map);
       if (envelope.schemaVersion != schemaVersion) {
         await _box.delete(key);
+        _log(
+          'Dropped cache key $key (schemaVersion ${envelope.schemaVersion} != $schemaVersion)',
+        );
         return null;
       }
       return envelope;
-    } on Object {
+    } on Object catch (error) {
       await _box.delete(key);
+      _log('Dropped corrupt cache key $key: $error');
       return null;
     }
+  }
+
+  static void _defaultLog(String message) {
+    developer.log(message, name: 'CacheStore');
   }
 }

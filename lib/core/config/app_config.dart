@@ -15,10 +15,12 @@ class AppConfig {
   /// Binance Spot REST root.
   final String binanceBaseUrl;
 
-  /// TCP/connect phase timeout for HTTP requests.
+  /// Timeout for opening the TCP connection ([HttpClient.connectionTimeout]
+  /// on the shared [http.Client] from [createPulseHttpClient]).
   final Duration connectTimeout;
 
-  /// Total time waiting for response bytes after connect.
+  /// Maximum time to receive the full HTTP response after connect ([ApiClient]
+  /// applies this to each GET future).
   final Duration receiveTimeout;
 
   /// Maximum attempts for transient failures (including first try).
