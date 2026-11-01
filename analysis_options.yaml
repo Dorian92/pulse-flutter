@@ -8,6 +8,13 @@ analyzer:
   errors:
     missing_return: error
     dead_code: error
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - macos/**
+    - linux/**
 
 linter:
   rules:

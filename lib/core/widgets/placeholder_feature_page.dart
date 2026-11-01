@@ -5,11 +5,13 @@ class PlaceholderFeaturePage extends StatelessWidget {
   const PlaceholderFeaturePage({
     required this.title,
     required this.body,
+    this.extra,
     super.key,
   });
 
   final String title;
   final String body;
+  final Widget? extra;
 
   @override
   Widget build(BuildContext context) {
@@ -19,16 +21,22 @@ class PlaceholderFeaturePage extends StatelessWidget {
       appBar: AppBar(title: Text(title)),
       body: Padding(
         padding: EdgeInsets.all(tokens.spacingMd),
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(tokens.spacingMd),
-            child: Text(
-              body,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Card(
+              child: Padding(
+                padding: EdgeInsets.all(tokens.spacingMd),
+                child: Text(
+                  body,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ),
             ),
-          ),
+            if (extra != null) extra!,
+          ],
         ),
       ),
     );

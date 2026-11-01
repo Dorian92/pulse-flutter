@@ -21,5 +21,40 @@
         "type": "String"
       }
     }
-  }
+  },
+  "liveIndicatorLabel": "LIVE",
+  "offlineBannerMessage": "Offline — showing prices from {minutes} min ago",
+  "@offlineBannerMessage": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "noLiveFeedBadge": "No live feed",
+  "globalMarketCapLabel": "Global market cap",
+  "filterAll": "All",
+  "filterGainers": "Gainers",
+  "filterLosers": "Losers",
+  "filterWatchlist": "Watchlist",
+  "periodOneDay": "1D",
+  "periodOneWeek": "1W",
+  "periodOneMonth": "1M",
+  "periodThreeMonths": "3M",
+  "periodOneYear": "1Y",
+  "statMarketCap": "Market cap",
+  "statVolume24h": "24h volume",
+  "statHigh24h": "24h high",
+  "statLow24h": "24h low",
+  "statCirculatingSupply": "Circulating supply",
+  "statAllTimeHigh": "All-time high",
+  "watchlistEdit": "Edit",
+  "watchlistEmptyHint": "Add assets to track them here.",
+  "designGalleryTitle": "Design gallery",
+  "designGalleryOpen": "Open design gallery",
+  "designGalleryThemeToggle": "Toggle theme",
+  "designGallerySectionComponents": "Components",
+  "designGalleryChartDeferred": "Interactive price chart ships in coin detail step.",
+  "designGalleryTriggerFlash": "Trigger live flash",
+  "removeActionLabel": "Remove"
 }

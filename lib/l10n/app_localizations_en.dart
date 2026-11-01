@@ -47,4 +47,91 @@ class AppLocalizationsEn extends AppLocalizations {
   String coinDetailPlaceholderBody(String coinId) {
     return 'Charts and stats for $coinId will appear here.';
   }
+
+  @override
+  String get liveIndicatorLabel => 'LIVE';
+
+  @override
+  String offlineBannerMessage(int minutes) {
+    return 'Offline — showing prices from $minutes min ago';
+  }
+
+  @override
+  String get noLiveFeedBadge => 'No live feed';
+
+  @override
+  String get globalMarketCapLabel => 'Global market cap';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterGainers => 'Gainers';
+
+  @override
+  String get filterLosers => 'Losers';
+
+  @override
+  String get filterWatchlist => 'Watchlist';
+
+  @override
+  String get periodOneDay => '1D';
+
+  @override
+  String get periodOneWeek => '1W';
+
+  @override
+  String get periodOneMonth => '1M';
+
+  @override
+  String get periodThreeMonths => '3M';
+
+  @override
+  String get periodOneYear => '1Y';
+
+  @override
+  String get statMarketCap => 'Market cap';
+
+  @override
+  String get statVolume24h => '24h volume';
+
+  @override
+  String get statHigh24h => '24h high';
+
+  @override
+  String get statLow24h => '24h low';
+
+  @override
+  String get statCirculatingSupply => 'Circulating supply';
+
+  @override
+  String get statAllTimeHigh => 'All-time high';
+
+  @override
+  String get watchlistEdit => 'Edit';
+
+  @override
+  String get watchlistEmptyHint => 'Add assets to track them here.';
+
+  @override
+  String get designGalleryTitle => 'Design gallery';
+
+  @override
+  String get designGalleryOpen => 'Open design gallery';
+
+  @override
+  String get designGalleryThemeToggle => 'Toggle theme';
+
+  @override
+  String get designGallerySectionComponents => 'Components';
+
+  @override
+  String get designGalleryChartDeferred =>
+      'Interactive price chart ships in coin detail step.';
+
+  @override
+  String get designGalleryTriggerFlash => 'Trigger live flash';
+
+  @override
+  String get removeActionLabel => 'Remove';
 }

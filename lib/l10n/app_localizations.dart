@@ -170,6 +170,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Charts and stats for {coinId} will appear here.'**
   String coinDetailPlaceholderBody(String coinId);
+
+  /// No description provided for @liveIndicatorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'LIVE'**
+  String get liveIndicatorLabel;
+
+  /// No description provided for @offlineBannerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline — showing prices from {minutes} min ago'**
+  String offlineBannerMessage(int minutes);
+
+  /// No description provided for @noLiveFeedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'No live feed'**
+  String get noLiveFeedBadge;
+
+  /// No description provided for @globalMarketCapLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Global market cap'**
+  String get globalMarketCapLabel;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
+
+  /// No description provided for @filterGainers.
+  ///
+  /// In en, this message translates to:
+  /// **'Gainers'**
+  String get filterGainers;
+
+  /// No description provided for @filterLosers.
+  ///
+  /// In en, this message translates to:
+  /// **'Losers'**
+  String get filterLosers;
+
+  /// No description provided for @filterWatchlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Watchlist'**
+  String get filterWatchlist;
+
+  /// No description provided for @periodOneDay.
+  ///
+  /// In en, this message translates to:
+  /// **'1D'**
+  String get periodOneDay;
+
+  /// No description provided for @periodOneWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'1W'**
+  String get periodOneWeek;
+
+  /// No description provided for @periodOneMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'1M'**
+  String get periodOneMonth;
+
+  /// No description provided for @periodThreeMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'3M'**
+  String get periodThreeMonths;
+
+  /// No description provided for @periodOneYear.
+  ///
+  /// In en, this message translates to:
+  /// **'1Y'**
+  String get periodOneYear;
+
+  /// No description provided for @statMarketCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Market cap'**
+  String get statMarketCap;
+
+  /// No description provided for @statVolume24h.
+  ///
+  /// In en, this message translates to:
+  /// **'24h volume'**
+  String get statVolume24h;
+
+  /// No description provided for @statHigh24h.
+  ///
+  /// In en, this message translates to:
+  /// **'24h high'**
+  String get statHigh24h;
+
+  /// No description provided for @statLow24h.
+  ///
+  /// In en, this message translates to:
+  /// **'24h low'**
+  String get statLow24h;
+
+  /// No description provided for @statCirculatingSupply.
+  ///
+  /// In en, this message translates to:
+  /// **'Circulating supply'**
+  String get statCirculatingSupply;
+
+  /// No description provided for @statAllTimeHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'All-time high'**
+  String get statAllTimeHigh;
+
+  /// No description provided for @watchlistEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get watchlistEdit;
+
+  /// No description provided for @watchlistEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add assets to track them here.'**
+  String get watchlistEmptyHint;
+
+  /// No description provided for @designGalleryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Design gallery'**
+  String get designGalleryTitle;
+
+  /// No description provided for @designGalleryOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open design gallery'**
+  String get designGalleryOpen;
+
+  /// No description provided for @designGalleryThemeToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle theme'**
+  String get designGalleryThemeToggle;
+
+  /// No description provided for @designGallerySectionComponents.
+  ///
+  /// In en, this message translates to:
+  /// **'Components'**
+  String get designGallerySectionComponents;
+
+  /// No description provided for @designGalleryChartDeferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Interactive price chart ships in coin detail step.'**
+  String get designGalleryChartDeferred;
+
+  /// No description provided for @designGalleryTriggerFlash.
+  ///
+  /// In en, this message translates to:
+  /// **'Trigger live flash'**
+  String get designGalleryTriggerFlash;
+
+  /// No description provided for @removeActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeActionLabel;
 }
 
 class _AppLocalizationsDelegate
