@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pulse/core/realtime/realtime_status.dart';
-import 'package:pulse/core/theme/app_colors.dart';
 import 'package:pulse/core/theme/app_theme.dart';
 import 'package:pulse/core/widgets/coin_list_tile.dart';
 import 'package:pulse/core/widgets/live_indicator.dart';
