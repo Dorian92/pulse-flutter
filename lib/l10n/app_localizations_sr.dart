@@ -46,6 +46,93 @@ class AppLocalizationsSr extends AppLocalizations {
   String coinDetailPlaceholderBody(String coinId) {
     return 'Grafikon i statistika za $coinId biće ovde.';
   }
+
+  @override
+  String get liveIndicatorLabel => 'UŽIVO';
+
+  @override
+  String offlineBannerMessage(int minutes) {
+    return 'Offline — prikazujemo cene od pre $minutes min';
+  }
+
+  @override
+  String get noLiveFeedBadge => 'Nema live feeda';
+
+  @override
+  String get globalMarketCapLabel => 'Globalna tržišna kapitalizacija';
+
+  @override
+  String get filterAll => 'Sve';
+
+  @override
+  String get filterGainers => 'Rast';
+
+  @override
+  String get filterLosers => 'Pad';
+
+  @override
+  String get filterWatchlist => 'Lista praćenja';
+
+  @override
+  String get periodOneDay => '1D';
+
+  @override
+  String get periodOneWeek => '1N';
+
+  @override
+  String get periodOneMonth => '1M';
+
+  @override
+  String get periodThreeMonths => '3M';
+
+  @override
+  String get periodOneYear => '1G';
+
+  @override
+  String get statMarketCap => 'Tržišna kap';
+
+  @override
+  String get statVolume24h => 'Obim 24h';
+
+  @override
+  String get statHigh24h => 'Max 24h';
+
+  @override
+  String get statLow24h => 'Min 24h';
+
+  @override
+  String get statCirculatingSupply => 'Optičenje u opticaju';
+
+  @override
+  String get statAllTimeHigh => 'Svevremenski max';
+
+  @override
+  String get watchlistEdit => 'Izmeni';
+
+  @override
+  String get watchlistEmptyHint => 'Dodajte imovinu da je pratite ovde.';
+
+  @override
+  String get designGalleryTitle => 'Galerija dizajna';
+
+  @override
+  String get designGalleryOpen => 'Otvori galeriju dizajna';
+
+  @override
+  String get designGalleryThemeToggle => 'Promeni temu';
+
+  @override
+  String get designGallerySectionComponents => 'Komponente';
+
+  @override
+  String get designGalleryChartDeferred =>
+      'Interaktivni grafikon stiže u koraku detalja koina.';
+
+  @override
+  String get designGalleryTriggerFlash => 'Pokreni live flash';
+
+  @override
+  String get removeActionLabel => 'Ukloni';
 }
 
 /// The translations for Serbian, using the Latin script (`sr_Latn`).
@@ -90,4 +177,91 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
   String coinDetailPlaceholderBody(String coinId) {
     return 'Grafikon i statistika za $coinId biće ovde.';
   }
+
+  @override
+  String get liveIndicatorLabel => 'UŽIVO';
+
+  @override
+  String offlineBannerMessage(int minutes) {
+    return 'Offline — prikazujemo cene od pre $minutes min';
+  }
+
+  @override
+  String get noLiveFeedBadge => 'Nema live feeda';
+
+  @override
+  String get globalMarketCapLabel => 'Globalna tržišna kapitalizacija';
+
+  @override
+  String get filterAll => 'Sve';
+
+  @override
+  String get filterGainers => 'Rast';
+
+  @override
+  String get filterLosers => 'Pad';
+
+  @override
+  String get filterWatchlist => 'Lista praćenja';
+
+  @override
+  String get periodOneDay => '1D';
+
+  @override
+  String get periodOneWeek => '1N';
+
+  @override
+  String get periodOneMonth => '1M';
+
+  @override
+  String get periodThreeMonths => '3M';
+
+  @override
+  String get periodOneYear => '1G';
+
+  @override
+  String get statMarketCap => 'Tržišna kap';
+
+  @override
+  String get statVolume24h => 'Obim 24h';
+
+  @override
+  String get statHigh24h => 'Max 24h';
+
+  @override
+  String get statLow24h => 'Min 24h';
+
+  @override
+  String get statCirculatingSupply => 'Optičenje u opticaju';
+
+  @override
+  String get statAllTimeHigh => 'Svevremenski max';
+
+  @override
+  String get watchlistEdit => 'Izmeni';
+
+  @override
+  String get watchlistEmptyHint => 'Dodajte imovinu da je pratite ovde.';
+
+  @override
+  String get designGalleryTitle => 'Galerija dizajna';
+
+  @override
+  String get designGalleryOpen => 'Otvori galeriju dizajna';
+
+  @override
+  String get designGalleryThemeToggle => 'Promeni temu';
+
+  @override
+  String get designGallerySectionComponents => 'Komponente';
+
+  @override
+  String get designGalleryChartDeferred =>
+      'Interaktivni grafikon stiže u koraku detalja koina.';
+
+  @override
+  String get designGalleryTriggerFlash => 'Pokreni live flash';
+
+  @override
+  String get removeActionLabel => 'Ukloni';
 }
