@@ -46,6 +46,13 @@ class _RecordingCoordinator extends RealtimeSubscriptionCoordinator {
 }
 
 class _NoopPriceStream implements PriceStreamService {
+  _NoopPriceStream();
+
+  final RealtimeStatus _status = const RealtimeStatus.offline();
+
+  @override
+  RealtimeStatus get currentStatus => _status;
+
   @override
   Stream<PriceTick> get ticks => const Stream.empty();
 
@@ -102,6 +109,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(ChartPeriod.oneDay);
+    registerFallbackValue('bitcoin');
   });
 
   setUp(() {
@@ -137,8 +145,11 @@ void main() {
         () => repository.loadDetail('bitcoin'),
       ).thenAnswer((_) async => Success(_detail()));
       when(
-        () =>
-            repository.loadChart(coinId: 'bitcoin', range: ChartPeriod.oneDay),
+        () => repository.loadChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneDay,
+          binanceSymbol: 'BTCUSDT',
+        ),
       ).thenAnswer((_) async => Success(_chart(ChartPeriod.oneDay)));
     },
     act: (bloc) => bloc.add(const CoinDetailStarted('bitcoin')),
@@ -208,8 +219,11 @@ void main() {
     ),
     setUp: () {
       when(
-        () =>
-            repository.loadChart(coinId: 'bitcoin', range: ChartPeriod.oneWeek),
+        () => repository.loadChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneWeek,
+          binanceSymbol: 'BTCUSDT',
+        ),
       ).thenAnswer((_) async => Success(_chart(ChartPeriod.oneWeek)));
     },
     act: (bloc) =>
@@ -223,16 +237,122 @@ void main() {
   );
 
   blocTest<CoinDetailBloc, CoinDetailState>(
+    'retry uses refreshDetail and refreshChart',
+    build: buildBloc,
+    seed: () => CoinDetailState.failure(
+      coinId: 'bitcoin',
+      failure: const NetworkFailure(offline: true),
+    ),
+    setUp: () {
+      when(
+        () => repository.refreshDetail('bitcoin'),
+      ).thenAnswer((_) async => Success(_detail()));
+      when(
+        () => repository.refreshChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneDay,
+          binanceSymbol: 'BTCUSDT',
+        ),
+      ).thenAnswer((_) async => Success(_chart(ChartPeriod.oneDay)));
+    },
+    act: (bloc) => bloc.add(const CoinDetailRetryRequested()),
+    verify: (_) {
+      verify(() => repository.refreshDetail('bitcoin')).called(1);
+      verifyNever(() => repository.loadDetail('bitcoin'));
+      verify(
+        () => repository.refreshChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneDay,
+          binanceSymbol: 'BTCUSDT',
+        ),
+      ).called(1);
+    },
+  );
+
+  blocTest<CoinDetailBloc, CoinDetailState>(
+    'seeds connecting status when live feed expected and service offline',
+    build: buildBloc,
+    setUp: () {
+      priceStream.emitStatus(const RealtimeStatus.offline());
+      when(
+        () => repository.loadDetail('bitcoin'),
+      ).thenAnswer((_) async => Success(_detail()));
+      when(
+        () => repository.loadChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneDay,
+          binanceSymbol: 'BTCUSDT',
+        ),
+      ).thenAnswer((_) async => Success(_chart(ChartPeriod.oneDay)));
+    },
+    act: (bloc) => bloc.add(const CoinDetailStarted('bitcoin')),
+    expect: () => [
+      isA<CoinDetailState>().having(
+        (s) => s.status,
+        'status',
+        CoinDetailStatus.loading,
+      ),
+      isA<CoinDetailState>().having(
+        (s) => s.realtimeStatus,
+        'status',
+        isA<RealtimeConnecting>(),
+      ),
+    ],
+  );
+
+  blocTest<CoinDetailBloc, CoinDetailState>(
+    'restartable range change keeps last completed range',
+    build: buildBloc,
+    seed: () => CoinDetailState.loaded(
+      coinId: 'bitcoin',
+      detail: _detail(),
+      chart: _chart(ChartPeriod.oneDay),
+      selectedRange: ChartPeriod.oneDay,
+      livePriceEur: 65000,
+      changePercent24h: 1,
+      realtimeStatus: const RealtimeStatus.offline(),
+      isStale: false,
+      chartLoading: false,
+      isWatchlisted: false,
+    ),
+    setUp: () {
+      final slowWeek = Completer<Result<PriceChartSeries>>();
+      when(
+        () => repository.loadChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneWeek,
+          binanceSymbol: 'BTCUSDT',
+        ),
+      ).thenAnswer((_) => slowWeek.future);
+      when(
+        () => repository.loadChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneDay,
+          binanceSymbol: 'BTCUSDT',
+        ),
+      ).thenAnswer((_) async => Success(_chart(ChartPeriod.oneDay)));
+    },
+    act: (bloc) async {
+      bloc.add(const CoinDetailChartRangeChanged(ChartPeriod.oneWeek));
+      await Future<void>.delayed(Duration.zero);
+      bloc.add(const CoinDetailChartRangeChanged(ChartPeriod.oneDay));
+    },
+    expect: () => [
+      isA<CoinDetailState>().having((s) => s.chartLoading, 'loading', isTrue),
+      isA<CoinDetailState>().having((s) => s.chartLoading, 'loading', isTrue),
+      isA<CoinDetailState>()
+          .having((s) => s.selectedRange, 'range', ChartPeriod.oneDay)
+          .having((s) => s.chart?.range, 'chart', ChartPeriod.oneDay),
+    ],
+  );
+
+  blocTest<CoinDetailBloc, CoinDetailState>(
     'failure when detail cannot load',
     build: buildBloc,
     setUp: () {
       when(
         () => repository.loadDetail('missing'),
       ).thenAnswer((_) async => const Failure(NotFoundFailure()));
-      when(
-        () =>
-            repository.loadChart(coinId: 'missing', range: ChartPeriod.oneDay),
-      ).thenAnswer((_) async => Success(_chart(ChartPeriod.oneDay)));
     },
     act: (bloc) => bloc.add(const CoinDetailStarted('missing')),
     expect: () => [
@@ -247,6 +367,71 @@ void main() {
         CoinDetailStatus.failure,
       ),
     ],
+    verify: (_) {
+      verifyNever(
+        () => repository.loadChart(
+          coinId: any(named: 'coinId'),
+          range: any(named: 'range'),
+          binanceSymbol: any(named: 'binanceSymbol'),
+        ),
+      );
+    },
+  );
+
+  blocTest<CoinDetailBloc, CoinDetailState>(
+    'watchlist toggle updates state',
+    build: buildBloc,
+    seed: () => CoinDetailState.loaded(
+      coinId: 'bitcoin',
+      detail: _detail(),
+      chart: _chart(ChartPeriod.oneDay),
+      selectedRange: ChartPeriod.oneDay,
+      livePriceEur: 65000,
+      changePercent24h: 1,
+      realtimeStatus: const RealtimeStatus.offline(),
+      isStale: false,
+      chartLoading: false,
+      isWatchlisted: false,
+    ),
+    act: (bloc) => bloc.add(const CoinDetailWatchlistToggled()),
+    expect: () => [
+      isA<CoinDetailState>().having(
+        (s) => s.isWatchlisted,
+        'watchlisted',
+        isTrue,
+      ),
+    ],
+    verify: (_) {
+      verify(
+        () => watchlistToggle.setWatched('bitcoin', watched: true),
+      ).called(1);
+    },
+  );
+
+  blocTest<CoinDetailBloc, CoinDetailState>(
+    'forwards live status to state',
+    build: buildBloc,
+    seed: () => CoinDetailState.loaded(
+      coinId: 'bitcoin',
+      detail: _detail(),
+      chart: _chart(ChartPeriod.oneDay),
+      selectedRange: ChartPeriod.oneDay,
+      livePriceEur: 65000,
+      changePercent24h: 1,
+      realtimeStatus: const RealtimeStatus.connecting(),
+      isStale: false,
+      chartLoading: false,
+      isWatchlisted: false,
+    ),
+    act: (bloc) =>
+        bloc.add(const CoinDetailRealtimeStatusChanged(RealtimeStatus.live())),
+    expect: () => [
+      isA<CoinDetailState>().having(
+        (s) => s.realtimeStatus,
+        'status',
+        isA<RealtimeLive>(),
+      ),
+    ],
   );
 
   test('close removes subscription token', () async {
@@ -254,7 +439,11 @@ void main() {
       () => repository.loadDetail('bitcoin'),
     ).thenAnswer((_) async => Success(_detail()));
     when(
-      () => repository.loadChart(coinId: 'bitcoin', range: ChartPeriod.oneDay),
+      () => repository.loadChart(
+        coinId: 'bitcoin',
+        range: ChartPeriod.oneDay,
+        binanceSymbol: 'BTCUSDT',
+      ),
     ).thenAnswer((_) async => Success(_chart(ChartPeriod.oneDay)));
 
     final bloc = buildBloc();

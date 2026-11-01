@@ -160,6 +160,8 @@ class _LoadedBody extends StatelessWidget {
           const ShimmerSkeleton(variant: ShimmerVariant.detailHeader)
         else if (state.chart != null && state.chart!.points.length >= 2)
           PriceChart(points: state.chart!.points, locale: locale)
+        else if (state.chart != null && state.chart!.points.length < 2)
+          _ChartEmpty(message: l10n.coinDetailChartEmpty)
         else if (state.chartFailure != null)
           _ChartError(
             message: l10n.coinDetailChartError,
@@ -179,42 +181,99 @@ class _LoadedBody extends StatelessWidget {
           items: [
             StatTileData(
               label: l10n.statMarketCap,
-              value: PulseFormatters.formatCompactCurrency(
-                detail.marketCapEur,
-                locale,
+              value: _formatStat(
+                l10n: l10n,
+                locale: locale,
+                value: detail.marketCapEur,
+                compactCurrency: true,
               ),
             ),
             StatTileData(
               label: l10n.statVolume24h,
-              value: PulseFormatters.formatCompactCurrency(
-                detail.volume24hEur,
-                locale,
+              value: _formatStat(
+                l10n: l10n,
+                locale: locale,
+                value: detail.volume24hEur,
+                compactCurrency: true,
               ),
             ),
             StatTileData(
               label: l10n.statHigh24h,
-              value: PulseFormatters.formatEurPrice(detail.high24hEur, locale),
+              value: _formatStat(
+                l10n: l10n,
+                locale: locale,
+                value: detail.high24hEur,
+              ),
             ),
             StatTileData(
               label: l10n.statLow24h,
-              value: PulseFormatters.formatEurPrice(detail.low24hEur, locale),
+              value: _formatStat(
+                l10n: l10n,
+                locale: locale,
+                value: detail.low24hEur,
+              ),
             ),
             StatTileData(
               label: l10n.statCirculatingSupply,
-              value: PulseFormatters.formatCompactNumber(
-                detail.circulatingSupply,
-                locale,
+              value: _formatStat(
+                l10n: l10n,
+                locale: locale,
+                value: detail.circulatingSupply,
+                compactNumber: true,
               ),
             ),
             StatTileData(
               label: l10n.statAllTimeHigh,
-              value: PulseFormatters.formatEurPrice(detail.athEur, locale),
+              value: _formatStat(
+                l10n: l10n,
+                locale: locale,
+                value: detail.athEur,
+              ),
             ),
           ],
         ),
         SizedBox(height: tokens.spacingLg),
-        CoinDetailAbout(text: detail.aboutTextEn),
+        CoinDetailAbout(
+          text: detail.aboutTextEn,
+          homepageUrl: detail.homepageUrl,
+        ),
       ],
+    );
+  }
+}
+
+String _formatStat({
+  required AppLocalizations l10n,
+  required String locale,
+  required double? value,
+  bool compactCurrency = false,
+  bool compactNumber = false,
+}) {
+  if (value == null) {
+    return l10n.statUnknown;
+  }
+  if (compactNumber) {
+    return PulseFormatters.formatCompactNumber(value, locale);
+  }
+  if (compactCurrency) {
+    return PulseFormatters.formatCompactCurrency(value, locale);
+  }
+  return PulseFormatters.formatEurPrice(value, locale);
+}
+
+class _ChartEmpty extends StatelessWidget {
+  const _ChartEmpty({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.pulseTokens;
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(tokens.spacingMd),
+        child: Text(message, textAlign: TextAlign.center),
+      ),
     );
   }
 }

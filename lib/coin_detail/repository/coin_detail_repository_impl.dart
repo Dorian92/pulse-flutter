@@ -34,6 +34,16 @@ class CoinDetailRepositoryImpl implements CoinDetailRepository {
   String _chartKey(String coinId, ChartPeriod range) =>
       _local.chartKeyFor(coinId: coinId, range: range, vsCurrency: vsCurrency);
 
+  Future<String?> _resolveBinanceSymbol({
+    required String coinId,
+    String? binanceSymbol,
+  }) async {
+    if (binanceSymbol != null) {
+      return binanceSymbol;
+    }
+    return (await _readCachedDetail(coinId))?.binanceSymbol;
+  }
+
   @override
   Future<Result<CoinDetail>> loadDetail(String coinId) {
     final cacheKey = _metadataKey(coinId);
@@ -53,8 +63,10 @@ class CoinDetailRepositoryImpl implements CoinDetailRepository {
   Future<Result<PriceChartSeries>> loadChart({
     required String coinId,
     required ChartPeriod range,
+    String? binanceSymbol,
   }) {
     final cacheKey = _chartKey(coinId, range);
+    final resolvedSymbol = binanceSymbol;
     return fetchCacheFirst<PriceChartSeries>(
       cache: _local.cacheStore,
       connectivity: _connectivity,
@@ -62,15 +74,14 @@ class CoinDetailRepositoryImpl implements CoinDetailRepository {
       ttl: _local.chartTtlFor(range),
       schemaVersion: CoinDetailLocalDataSource.schemaVersion,
       fetchRemote: () async {
-        final detailResult = await _remote.fetchDetail(coinId);
-        final binanceSymbol = switch (detailResult) {
-          Success(:final value) => value.binanceSymbol,
-          Failure() => null,
-        };
+        final symbol = await _resolveBinanceSymbol(
+          coinId: coinId,
+          binanceSymbol: resolvedSymbol,
+        );
         return _remote.fetchChart(
           coinId: coinId,
           range: range,
-          binanceSymbol: binanceSymbol,
+          binanceSymbol: symbol,
         );
       },
       decode: PriceChartSeries.fromJson,
@@ -101,6 +112,7 @@ class CoinDetailRepositoryImpl implements CoinDetailRepository {
   Future<Result<PriceChartSeries>> refreshChart({
     required String coinId,
     required ChartPeriod range,
+    String? binanceSymbol,
   }) async {
     final online = await _connectivity.isOnline;
     if (!online) {
@@ -110,15 +122,14 @@ class CoinDetailRepositoryImpl implements CoinDetailRepository {
         range,
       );
     }
-    final detail = await _remote.fetchDetail(coinId);
-    final binanceSymbol = switch (detail) {
-      Success(:final value) => value.binanceSymbol,
-      Failure() => null,
-    };
+    final symbol = await _resolveBinanceSymbol(
+      coinId: coinId,
+      binanceSymbol: binanceSymbol,
+    );
     final remote = await _remote.fetchChart(
       coinId: coinId,
       range: range,
-      binanceSymbol: binanceSymbol,
+      binanceSymbol: symbol,
     );
     switch (remote) {
       case Success(:final value):

@@ -70,6 +70,9 @@ class BinancePriceStreamService implements PriceStreamService {
   Stream<RealtimeStatus> get status => _statusController.stream;
 
   @override
+  RealtimeStatus get currentStatus => _status;
+
+  @override
   void setDesiredSymbols(Set<String> lowercaseBinanceSymbols) {
     if (_disposed) {
       return;

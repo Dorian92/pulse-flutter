@@ -37,7 +37,10 @@ class PriceChart extends StatelessWidget {
 
     final minY = points.map((p) => p.priceEur).reduce((a, b) => a < b ? a : b);
     final maxY = points.map((p) => p.priceEur).reduce((a, b) => a > b ? a : b);
-    final padding = (maxY - minY) * 0.08;
+    final range = maxY - minY;
+    final padding = range.abs() < 1e-9
+        ? (maxY.abs() * 0.005).clamp(1.0, double.infinity)
+        : range * 0.08;
     final chartMinY = minY - padding;
     final chartMaxY = maxY + padding;
 

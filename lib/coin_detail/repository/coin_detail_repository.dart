@@ -9,9 +9,12 @@ abstract class CoinDetailRepository {
   Future<Result<CoinDetail>> loadDetail(String coinId);
 
   /// Cache-first chart for [coinId] and [range].
+  ///
+  /// Pass [binanceSymbol] from loaded metadata to avoid redundant `/coins/{id}` calls.
   Future<Result<PriceChartSeries>> loadChart({
     required String coinId,
     required ChartPeriod range,
+    String? binanceSymbol,
   });
 
   /// Bypass TTL for metadata when online.
@@ -21,5 +24,6 @@ abstract class CoinDetailRepository {
   Future<Result<PriceChartSeries>> refreshChart({
     required String coinId,
     required ChartPeriod range,
+    String? binanceSymbol,
   });
 }

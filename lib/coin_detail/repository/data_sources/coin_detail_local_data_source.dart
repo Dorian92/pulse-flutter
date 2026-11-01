@@ -10,7 +10,7 @@ class CoinDetailLocalDataSource {
   CoinDetailLocalDataSource({required CacheStore cacheStore})
     : _cache = cacheStore;
 
-  static const int schemaVersion = 1;
+  static const int schemaVersion = 2;
   static const Duration metadataTtl = Duration(hours: 24);
 
   final CacheStore _cache;

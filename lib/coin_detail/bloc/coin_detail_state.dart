@@ -23,10 +23,14 @@ class CoinDetailState extends Equatable {
   const CoinDetailState.initial()
     : this(status: CoinDetailStatus.initial, coinId: '');
 
-  factory CoinDetailState.loading({required String coinId}) {
+  factory CoinDetailState.loading({
+    required String coinId,
+    ChartPeriod selectedRange = ChartPeriod.oneDay,
+  }) {
     return CoinDetailState(
       status: CoinDetailStatus.loading,
       coinId: coinId,
+      selectedRange: selectedRange,
       chartLoading: true,
     );
   }

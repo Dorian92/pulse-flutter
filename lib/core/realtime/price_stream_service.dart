@@ -10,6 +10,9 @@ abstract class PriceStreamService {
   /// Connection lifecycle for UI indicators.
   Stream<RealtimeStatus> get status;
 
+  /// Latest status (for UI seeding before the next stream event).
+  RealtimeStatus get currentStatus;
+
   /// Replaces the desired subscription set (lowercase Binance symbols, e.g. `btcusdt`).
   ///
   /// The service always subscribes to `eurusdt` internally for EUR conversion.

@@ -201,7 +201,14 @@ CoinDetail parseCoinDetailFromApi(
   final description = json['description'] as Map<String, dynamic>? ?? {};
   final image = json['image'] as Map<String, dynamic>? ?? {};
 
-  double readEur(String key) {
+  final links = json['links'] as Map<String, dynamic>? ?? {};
+  final homepageList = links['homepage'] as List<dynamic>? ?? [];
+  final homepageUrl = homepageList
+      .whereType<String>()
+      .map((url) => url.trim())
+      .firstWhere((url) => url.isNotEmpty, orElse: () => '');
+
+  double? readEurOptional(String key) {
     final value = marketData[key];
     if (value is Map && value['eur'] != null) {
       return (value['eur'] as num).toDouble();
@@ -209,7 +216,12 @@ CoinDetail parseCoinDetailFromApi(
     if (value is num) {
       return value.toDouble();
     }
-    return 0;
+    return null;
+  }
+
+  final currentPriceEur = readEurOptional('current_price');
+  if (currentPriceEur == null) {
+    throw const FormatException('Missing current_price in market_data');
   }
 
   final rawDescription = description['en'] as String? ?? '';
@@ -218,17 +230,17 @@ CoinDetail parseCoinDetailFromApi(
     symbol: (json['symbol'] as String? ?? '').toUpperCase(),
     name: json['name'] as String? ?? coinId,
     imageUrl: image['large'] as String? ?? image['small'] as String? ?? '',
-    currentPriceEur: readEur('current_price'),
+    currentPriceEur: currentPriceEur,
     priceChangePercent24h:
         (marketData['price_change_percentage_24h'] as num?)?.toDouble() ?? 0,
-    marketCapEur: readEur('market_cap'),
-    volume24hEur: readEur('total_volume'),
-    high24hEur: readEur('high_24h'),
-    low24hEur: readEur('low_24h'),
-    circulatingSupply:
-        (marketData['circulating_supply'] as num?)?.toDouble() ?? 0,
-    athEur: readEur('ath'),
+    marketCapEur: readEurOptional('market_cap'),
+    volume24hEur: readEurOptional('total_volume'),
+    high24hEur: readEurOptional('high_24h'),
+    low24hEur: readEurOptional('low_24h'),
+    circulatingSupply: (marketData['circulating_supply'] as num?)?.toDouble(),
+    athEur: readEurOptional('ath'),
     aboutTextEn: stripHtmlDescription(rawDescription),
+    homepageUrl: homepageUrl.isEmpty ? null : homepageUrl,
     fetchedAt: fetchedAt,
     binanceSymbol: symbolMapper.binanceUsdtSymbolFor(
       coinGeckoId: coinId,

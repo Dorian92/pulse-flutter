@@ -158,6 +158,7 @@ sealed class RealtimeStatus {
 **CoinDetailBloc**
 
 - Registers single symbol while page is active.
+- Subscribes to the shared **`ticks`** broadcast and **ignores** events for other symbols (only merges when `tick.symbol` matches the open coin’s Binance pair).
 
 **Coordinator (recommended):** `RealtimeSubscriptionCoordinator` in `core/realtime/` merges requests from features so `PriceStreamService` sees one union set.
 

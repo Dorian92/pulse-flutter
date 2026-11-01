@@ -67,10 +67,6 @@ class CoinDetailBloc extends Bloc<CoinDetailEvent, CoinDetailState> {
 
     final watched = await _watchlistToggle.isWatched(event.coinId);
     final detailResult = await _repository.loadDetail(event.coinId);
-    final chartResult = await _repository.loadChart(
-      coinId: event.coinId,
-      range: ChartPeriod.oneDay,
-    );
 
     switch (detailResult) {
       case Failure(:final error):
@@ -78,32 +74,19 @@ class CoinDetailBloc extends Bloc<CoinDetailEvent, CoinDetailState> {
         return;
       case Success(:final value, :final isStale):
         _registerLiveSubscription(value);
-        final chart = switch (chartResult) {
-          Success(:final value) => value,
-          Failure() => null,
-        };
-        final chartFailure = switch (chartResult) {
-          Failure(:final error) => error,
-          Success() => null,
-        };
-        final chartStale = switch (chartResult) {
-          Success(isStale: true) => true,
-          _ => false,
-        };
+        final chartResult = await _repository.loadChart(
+          coinId: event.coinId,
+          range: ChartPeriod.oneDay,
+          binanceSymbol: value.binanceSymbol,
+        );
         emit(
-          CoinDetailState.loaded(
+          _loadedFromResults(
             coinId: event.coinId,
             detail: value,
-            chart: chart,
+            chartResult: chartResult,
             selectedRange: ChartPeriod.oneDay,
-            livePriceEur: value.currentPriceEur,
-            changePercent24h: value.priceChangePercent24h,
-            realtimeStatus: const RealtimeStatus.offline(),
-            isStale: isStale || chartStale,
-            chartLoading: false,
-            chartFailure: chartFailure,
             isWatchlisted: watched,
-            fetchedAt: value.fetchedAt,
+            detailStale: isStale,
           ),
         );
     }
@@ -128,6 +111,7 @@ class CoinDetailBloc extends Bloc<CoinDetailEvent, CoinDetailState> {
     final chartResult = await _repository.loadChart(
       coinId: state.coinId,
       range: event.range,
+      binanceSymbol: detail.binanceSymbol,
     );
 
     switch (chartResult) {
@@ -149,11 +133,84 @@ class CoinDetailBloc extends Bloc<CoinDetailEvent, CoinDetailState> {
     CoinDetailRetryRequested event,
     Emitter<CoinDetailState> emit,
   ) async {
-    if (state.coinId.isEmpty) {
+    final coinId = state.coinId;
+    if (coinId.isEmpty) {
       return;
     }
-    emit(CoinDetailState.loading(coinId: state.coinId));
-    add(CoinDetailStarted(state.coinId));
+    final range = state.selectedRange;
+    emit(CoinDetailState.loading(coinId: coinId, selectedRange: range));
+
+    final watched = await _watchlistToggle.isWatched(coinId);
+    final detailResult = await _repository.refreshDetail(coinId);
+    switch (detailResult) {
+      case Failure(:final error):
+        emit(CoinDetailState.failure(coinId: coinId, failure: error));
+        return;
+      case Success(:final value, :final isStale):
+        _registerLiveSubscription(value);
+        final chartResult = await _repository.refreshChart(
+          coinId: coinId,
+          range: range,
+          binanceSymbol: value.binanceSymbol,
+        );
+        emit(
+          _loadedFromResults(
+            coinId: coinId,
+            detail: value,
+            chartResult: chartResult,
+            selectedRange: range,
+            isWatchlisted: watched,
+            detailStale: isStale,
+          ),
+        );
+    }
+  }
+
+  CoinDetailState _loadedFromResults({
+    required String coinId,
+    required CoinDetail detail,
+    required Result<PriceChartSeries> chartResult,
+    required ChartPeriod selectedRange,
+    required bool isWatchlisted,
+    required bool detailStale,
+  }) {
+    final chart = switch (chartResult) {
+      Success(:final value) => value,
+      Failure() => null,
+    };
+    final chartFailure = switch (chartResult) {
+      Failure(:final error) => error,
+      Success() => null,
+    };
+    final chartStale = switch (chartResult) {
+      Success(isStale: true) => true,
+      _ => false,
+    };
+    return CoinDetailState.loaded(
+      coinId: coinId,
+      detail: detail,
+      chart: chart,
+      selectedRange: selectedRange,
+      livePriceEur: detail.currentPriceEur,
+      changePercent24h: detail.priceChangePercent24h,
+      realtimeStatus: _initialRealtimeStatus(detail),
+      isStale: detailStale || chartStale,
+      chartLoading: false,
+      chartFailure: chartFailure,
+      isWatchlisted: isWatchlisted,
+      fetchedAt: detail.fetchedAt,
+    );
+  }
+
+  RealtimeStatus _initialRealtimeStatus(CoinDetail detail) {
+    if (!detail.hasLiveFeed) {
+      return const RealtimeStatus.offline();
+    }
+    final current = _priceStreamService.currentStatus;
+    if (current is RealtimeOffline) {
+      return const RealtimeStatus.connecting();
+    }
+    return current;
   }
 
   void _onPriceTick(

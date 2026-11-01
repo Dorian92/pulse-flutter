@@ -192,6 +192,22 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get coinDetailRemoveWatchlist => 'Ukloni sa liste praćenja';
+
+  @override
+  String get statUnknown => '—';
+
+  @override
+  String get coinDetailChartEmpty =>
+      'Nema dovoljno podataka za grafikon u ovom periodu.';
+
+  @override
+  String get coinDetailHomepageLabel => 'Veb sajt';
+
+  @override
+  String get coinDetailHomepageCopy => 'Kopiraj link';
+
+  @override
+  String get coinDetailHomepageCopied => 'Link je kopiran';
 }
 
 /// The translations for Serbian, using the Latin script (`sr_Latn`).
@@ -382,4 +398,20 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get coinDetailRemoveWatchlist => 'Ukloni sa liste praćenja';
+
+  @override
+  String get statUnknown => '—';
+
+  @override
+  String get coinDetailChartEmpty =>
+      'Nema dovoljno podataka za grafikon u ovom periodu.';
+
+  @override
+  String get coinDetailHomepageLabel => 'Veb sajt';
+
+  @override
+  String get coinDetailHomepageCopy => 'Kopiraj link';
+
+  @override
+  String get coinDetailHomepageCopied => 'Link je kopiran';
 }

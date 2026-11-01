@@ -74,7 +74,7 @@ test/coin_detail/
 
 | Key | TTL | Payload |
 |-----|-----|---------|
-| `coin:{id}:meta:eur` | **24 h** | `CoinDetail` JSON (`schemaVersion: 1`) |
+| `coin:{id}:meta:eur` | **24 h** | `CoinDetail` JSON (`schemaVersion: 2`) |
 | `chart:{id}:{range}:eur` | per range | `PriceChartSeries` JSON (`schemaVersion: 1`) |
 
 | Range key segment | TTL |
@@ -160,3 +160,12 @@ No real network; mock **`ApiClient`**, fake cache, **`FakePriceStreamService`**.
 - Serbian description (`description` localization strategy — step 7 l10n).
 - Chart source badge in UI (“CoinGecko history”) — optional debug-only.
 - Pull-to-refresh on detail (retry button only in v1).
+
+## Chart vs live price
+
+- Historical chart series come from REST/cache only; **live WebSocket ticks update the header price, not the chart line** (optional live point append deferred).
+- Chart loads pass **`binanceSymbol` from metadata** so `/coins/{id}` is not re-fetched on every range cache miss.
+
+## Realtime note
+
+- `CoinDetailBloc` listens to the shared **`PriceStreamService.ticks`** broadcast and **ignores ticks** whose symbol does not match the open coin (same global-stream filter pattern as markets).

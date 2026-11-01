@@ -81,5 +81,10 @@
   "coinDetailAboutTitle": "About",
   "coinDetailChartError": "Chart could not be loaded.",
   "coinDetailAddWatchlist": "Add to watchlist",
-  "coinDetailRemoveWatchlist": "Remove from watchlist"
+  "coinDetailRemoveWatchlist": "Remove from watchlist",
+  "statUnknown": "—",
+  "coinDetailChartEmpty": "Not enough chart data for this range.",
+  "coinDetailHomepageLabel": "Website",
+  "coinDetailHomepageCopy": "Copy link",
+  "coinDetailHomepageCopied": "Link copied"
 }

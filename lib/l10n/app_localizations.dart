@@ -446,6 +446,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove from watchlist'**
   String get coinDetailRemoveWatchlist;
+
+  /// No description provided for @statUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get statUnknown;
+
+  /// No description provided for @coinDetailChartEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough chart data for this range.'**
+  String get coinDetailChartEmpty;
+
+  /// No description provided for @coinDetailHomepageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get coinDetailHomepageLabel;
+
+  /// No description provided for @coinDetailHomepageCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get coinDetailHomepageCopy;
+
+  /// No description provided for @coinDetailHomepageCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get coinDetailHomepageCopied;
 }
 
 class _AppLocalizationsDelegate

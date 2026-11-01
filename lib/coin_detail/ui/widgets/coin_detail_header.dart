@@ -51,22 +51,24 @@ class CoinDetailHeader extends StatelessWidget {
             ),
             SizedBox(width: tokens.spacingMd),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    detail.name,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: detail.name,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  Text(
-                    detail.symbol,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: context.pulseColors.textSecondary,
+                    TextSpan(
+                      text: ' ${detail.symbol}',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: context.pulseColors.textSecondary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             IconButton(

@@ -10,14 +10,15 @@ class CoinDetail extends Equatable {
     required this.imageUrl,
     required this.currentPriceEur,
     required this.priceChangePercent24h,
-    required this.marketCapEur,
-    required this.volume24hEur,
-    required this.high24hEur,
-    required this.low24hEur,
-    required this.circulatingSupply,
-    required this.athEur,
     required this.aboutTextEn,
     required this.fetchedAt,
+    this.marketCapEur,
+    this.volume24hEur,
+    this.high24hEur,
+    this.low24hEur,
+    this.circulatingSupply,
+    this.athEur,
+    this.homepageUrl,
     this.binanceSymbol,
   });
 
@@ -39,26 +40,29 @@ class CoinDetail extends Equatable {
   /// 24h change percentage.
   final double priceChangePercent24h;
 
-  /// Market cap in EUR.
-  final double marketCapEur;
+  /// Market cap in EUR when reported by CoinGecko.
+  final double? marketCapEur;
 
-  /// 24h volume in EUR.
-  final double volume24hEur;
+  /// 24h volume in EUR when reported.
+  final double? volume24hEur;
 
-  /// 24h high in EUR.
-  final double high24hEur;
+  /// 24h high in EUR when reported.
+  final double? high24hEur;
 
-  /// 24h low in EUR.
-  final double low24hEur;
+  /// 24h low in EUR when reported.
+  final double? low24hEur;
 
-  /// Circulating supply (coin units).
-  final double circulatingSupply;
+  /// Circulating supply (coin units) when reported.
+  final double? circulatingSupply;
 
-  /// All-time high in EUR.
-  final double athEur;
+  /// All-time high in EUR when reported.
+  final double? athEur;
 
   /// Plain-text About copy (English).
   final String aboutTextEn;
+
+  /// Primary homepage URL from CoinGecko links, if any.
+  final String? homepageUrl;
 
   /// When metadata was fetched (UTC).
   final DateTime fetchedAt;
@@ -88,6 +92,7 @@ class CoinDetail extends Equatable {
       circulatingSupply: circulatingSupply,
       athEur: athEur,
       aboutTextEn: aboutTextEn,
+      homepageUrl: homepageUrl,
       fetchedAt: fetchedAt,
       binanceSymbol: binanceSymbol,
     );
@@ -107,11 +112,20 @@ class CoinDetail extends Equatable {
     'circulatingSupply': circulatingSupply,
     'athEur': athEur,
     'aboutTextEn': aboutTextEn,
+    'homepageUrl': homepageUrl,
     'fetchedAt': fetchedAt.toIso8601String(),
     'binanceSymbol': binanceSymbol,
   };
 
   factory CoinDetail.fromJson(Map<String, dynamic> json) {
+    double? readOptional(String key) {
+      final value = json[key];
+      if (value == null) {
+        return null;
+      }
+      return (value as num).toDouble();
+    }
+
     return CoinDetail(
       id: json['id'] as String,
       symbol: json['symbol'] as String,
@@ -119,13 +133,14 @@ class CoinDetail extends Equatable {
       imageUrl: json['imageUrl'] as String,
       currentPriceEur: (json['currentPriceEur'] as num).toDouble(),
       priceChangePercent24h: (json['priceChangePercent24h'] as num).toDouble(),
-      marketCapEur: (json['marketCapEur'] as num).toDouble(),
-      volume24hEur: (json['volume24hEur'] as num).toDouble(),
-      high24hEur: (json['high24hEur'] as num).toDouble(),
-      low24hEur: (json['low24hEur'] as num).toDouble(),
-      circulatingSupply: (json['circulatingSupply'] as num).toDouble(),
-      athEur: (json['athEur'] as num).toDouble(),
+      marketCapEur: readOptional('marketCapEur'),
+      volume24hEur: readOptional('volume24hEur'),
+      high24hEur: readOptional('high24hEur'),
+      low24hEur: readOptional('low24hEur'),
+      circulatingSupply: readOptional('circulatingSupply'),
+      athEur: readOptional('athEur'),
       aboutTextEn: json['aboutTextEn'] as String,
+      homepageUrl: json['homepageUrl'] as String?,
       fetchedAt: DateTime.parse(json['fetchedAt'] as String).toUtc(),
       binanceSymbol: json['binanceSymbol'] as String?,
     );
@@ -146,6 +161,7 @@ class CoinDetail extends Equatable {
     circulatingSupply,
     athEur,
     aboutTextEn,
+    homepageUrl,
     fetchedAt,
     binanceSymbol,
   ];

@@ -7,9 +7,12 @@ import 'package:pulse/coin_detail/models/chart_point.dart';
 import 'package:pulse/coin_detail/models/coin_detail.dart';
 import 'package:pulse/coin_detail/models/price_chart_series.dart';
 import 'package:pulse/coin_detail/ui/coin_detail_page.dart';
+import 'package:pulse/core/error/app_failure.dart';
 import 'package:pulse/core/realtime/realtime_status.dart';
 import 'package:pulse/core/theme/app_theme.dart';
+import 'package:pulse/core/widgets/live_indicator.dart';
 import 'package:pulse/core/widgets/no_live_feed_badge.dart';
+import 'package:pulse/core/widgets/offline_banner.dart';
 import 'package:pulse/core/widgets/period_selector.dart';
 import 'package:pulse/core/widgets/shimmer_skeleton.dart';
 import 'package:pulse/l10n/app_localizations.dart';
@@ -125,5 +128,103 @@ void main() {
     verify(
       () => bloc.add(const CoinDetailChartRangeChanged(ChartPeriod.oneWeek)),
     ).called(1);
+  });
+
+  testWidgets('shows offline banner when stale', (tester) async {
+    whenListen(
+      bloc,
+      const Stream<CoinDetailState>.empty(),
+      initialState: _loadedState(
+        binanceSymbol: 'BTCUSDT',
+      ).copyWith(isStale: true, fetchedAt: DateTime.utc(2026, 1, 1, 10)),
+    );
+
+    await tester.pumpWidget(_wrap(bloc));
+    await tester.pump();
+
+    expect(find.byType(OfflineBanner), findsOneWidget);
+  });
+
+  testWidgets('shows active live indicator when status live', (tester) async {
+    whenListen(
+      bloc,
+      const Stream<CoinDetailState>.empty(),
+      initialState: _loadedState(
+        binanceSymbol: 'BTCUSDT',
+      ).copyWith(realtimeStatus: const RealtimeStatus.live()),
+    );
+
+    await tester.pumpWidget(_wrap(bloc));
+    await tester.pump();
+
+    expect(find.byType(LiveIndicator), findsOneWidget);
+    expect(find.text('LIVE'), findsOneWidget);
+  });
+
+  testWidgets('chart error retry dispatches range reload', (tester) async {
+    whenListen(
+      bloc,
+      const Stream<CoinDetailState>.empty(),
+      initialState: CoinDetailState.loaded(
+        coinId: 'chainlink',
+        detail: _detail(binanceSymbol: 'BTCUSDT'),
+        selectedRange: ChartPeriod.oneDay,
+        livePriceEur: 20,
+        changePercent24h: -0.5,
+        realtimeStatus: const RealtimeStatus.offline(),
+        isStale: false,
+        chartLoading: false,
+        isWatchlisted: false,
+        chartFailure: const NetworkFailure(offline: true),
+      ),
+    );
+    when(() => bloc.add(any())).thenReturn(null);
+
+    await tester.pumpWidget(_wrap(bloc));
+    await tester.pump();
+
+    await tester.tap(find.text('Try again'));
+    await tester.pump();
+
+    verify(
+      () => bloc.add(const CoinDetailChartRangeChanged(ChartPeriod.oneDay)),
+    ).called(1);
+  });
+
+  testWidgets('watchlist star dispatches toggle', (tester) async {
+    whenListen(
+      bloc,
+      const Stream<CoinDetailState>.empty(),
+      initialState: _loadedState(binanceSymbol: 'BTCUSDT'),
+    );
+    when(() => bloc.add(any())).thenReturn(null);
+
+    await tester.pumpWidget(_wrap(bloc));
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.star_border));
+    await tester.pump();
+
+    verify(() => bloc.add(const CoinDetailWatchlistToggled())).called(1);
+  });
+
+  testWidgets('shows chart empty message for sparse series', (tester) async {
+    whenListen(
+      bloc,
+      const Stream<CoinDetailState>.empty(),
+      initialState: _loadedState(binanceSymbol: 'BTCUSDT').copyWith(
+        chart: PriceChartSeries(
+          points: [ChartPoint(timestamp: DateTime.utc(2026), priceEur: 20)],
+          range: ChartPeriod.oneDay,
+          source: ChartDataSource.coinGeckoMarketChart,
+          fetchedAt: DateTime.utc(2026),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(_wrap(bloc));
+    await tester.pump();
+
+    expect(find.text('Not enough chart data for this range.'), findsOneWidget);
   });
 }

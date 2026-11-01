@@ -88,6 +88,7 @@ Future<void> initPulseTestDependencies() async {
     () => coinDetailRepository.loadChart(
       coinId: any(named: 'coinId'),
       range: any(named: 'range'),
+      binanceSymbol: any(named: 'binanceSymbol'),
     ),
   ).thenAnswer(
     (_) async => Success(

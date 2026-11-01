@@ -194,4 +194,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get coinDetailRemoveWatchlist => 'Remove from watchlist';
+
+  @override
+  String get statUnknown => '—';
+
+  @override
+  String get coinDetailChartEmpty => 'Not enough chart data for this range.';
+
+  @override
+  String get coinDetailHomepageLabel => 'Website';
+
+  @override
+  String get coinDetailHomepageCopy => 'Copy link';
+
+  @override
+  String get coinDetailHomepageCopied => 'Link copied';
 }

@@ -90,7 +90,7 @@ void main() {
     await tempDir.delete(recursive: true);
   });
 
-  test('loadDetail uses fresh metadata cache', () async {
+  test('loadDetail uses fresh metadata cache without remote call', () async {
     final detail = _sampleDetail(clock.now());
     await local.writeMetadata(
       cacheKey: local.metadataKeyFor(coinId: 'bitcoin'),
@@ -104,56 +104,92 @@ void main() {
     verifyNever(() => remote.fetchDetail(any()));
   });
 
-  test('loadChart uses TTL key per range', () async {
-    final chart = _sampleChart(clock.now(), ChartPeriod.oneWeek);
-    await local.writeChart(
-      cacheKey: local.chartKeyFor(
+  test(
+    'chart cache miss does not call fetchDetail when symbol provided',
+    () async {
+      when(() => connectivity.isOnline).thenAnswer((_) async => true);
+      when(
+        () => remote.fetchChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneDay,
+          binanceSymbol: 'BTCUSDT',
+        ),
+      ).thenAnswer(
+        (_) async => Success(_sampleChart(clock.now(), ChartPeriod.oneDay)),
+      );
+      when(
+        () => remote.fetchChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneWeek,
+          binanceSymbol: 'BTCUSDT',
+        ),
+      ).thenAnswer(
+        (_) async => Success(_sampleChart(clock.now(), ChartPeriod.oneWeek)),
+      );
+
+      await repository.loadChart(
+        coinId: 'bitcoin',
+        range: ChartPeriod.oneDay,
+        binanceSymbol: 'BTCUSDT',
+      );
+      await repository.loadChart(
         coinId: 'bitcoin',
         range: ChartPeriod.oneWeek,
-      ),
-      series: chart,
-      range: ChartPeriod.oneWeek,
-    );
-    when(() => connectivity.isOnline).thenAnswer((_) async => true);
-
-    final result = await repository.loadChart(
-      coinId: 'bitcoin',
-      range: ChartPeriod.oneWeek,
-    );
-
-    expect(result, isA<Success<PriceChartSeries>>());
-    verifyZeroInteractions(remote);
-  });
-
-  test('loadChart fetches remote on miss with binance symbol', () async {
-    final detail = _sampleDetail(clock.now());
-    final chart = _sampleChart(clock.now(), ChartPeriod.oneDay);
-    when(() => connectivity.isOnline).thenAnswer((_) async => true);
-    when(
-      () => remote.fetchDetail('bitcoin'),
-    ).thenAnswer((_) async => Success(detail));
-    when(
-      () => remote.fetchChart(
-        coinId: 'bitcoin',
-        range: ChartPeriod.oneDay,
         binanceSymbol: 'BTCUSDT',
-      ),
-    ).thenAnswer((_) async => Success(chart));
+      );
 
-    final result = await repository.loadChart(
-      coinId: 'bitcoin',
-      range: ChartPeriod.oneDay,
-    );
+      verifyNever(() => remote.fetchDetail(any()));
+      verify(
+        () => remote.fetchChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneDay,
+          binanceSymbol: 'BTCUSDT',
+        ),
+      ).called(1);
+      verify(
+        () => remote.fetchChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneWeek,
+          binanceSymbol: 'BTCUSDT',
+        ),
+      ).called(1);
+    },
+  );
 
-    expect(result, isA<Success<PriceChartSeries>>());
-    verify(
-      () => remote.fetchChart(
+  test(
+    'chart cache miss reads binance symbol from metadata cache only',
+    () async {
+      final detail = _sampleDetail(clock.now());
+      await local.writeMetadata(
+        cacheKey: local.metadataKeyFor(coinId: 'bitcoin'),
+        detail: detail,
+      );
+      when(() => connectivity.isOnline).thenAnswer((_) async => true);
+      when(
+        () => remote.fetchChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneMonth,
+          binanceSymbol: 'BTCUSDT',
+        ),
+      ).thenAnswer(
+        (_) async => Success(_sampleChart(clock.now(), ChartPeriod.oneMonth)),
+      );
+
+      await repository.loadChart(
         coinId: 'bitcoin',
-        range: ChartPeriod.oneDay,
-        binanceSymbol: 'BTCUSDT',
-      ),
-    ).called(1);
-  });
+        range: ChartPeriod.oneMonth,
+      );
+
+      verifyNever(() => remote.fetchDetail(any()));
+      verify(
+        () => remote.fetchChart(
+          coinId: 'bitcoin',
+          range: ChartPeriod.oneMonth,
+          binanceSymbol: 'BTCUSDT',
+        ),
+      ).called(1);
+    },
+  );
 
   test('loadChart offline returns stale envelope', () async {
     final chart = _sampleChart(clock.now(), ChartPeriod.oneDay);
@@ -168,6 +204,7 @@ void main() {
     final result = await repository.loadChart(
       coinId: 'bitcoin',
       range: ChartPeriod.oneDay,
+      binanceSymbol: 'BTCUSDT',
     );
 
     expect(result, isA<Success<PriceChartSeries>>());
