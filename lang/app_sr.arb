@@ -1,0 +1,15 @@
+{
+  "@@locale": "sr",
+  "appTitle": "Pulse",
+  "tabMarkets": "Tržišta",
+  "tabWatchlist": "Lista praćenja",
+  "tabSettings": "Podešavanja",
+  "marketsPlaceholderTitle": "Tržišta",
+  "marketsPlaceholderBody": "Ovde će se prikazati vodeći koini i cene uživo.",
+  "watchlistPlaceholderTitle": "Lista praćenja",
+  "watchlistPlaceholderBody": "Ovde će se prikazati sačuvani koini.",
+  "settingsPlaceholderTitle": "Podešavanja",
+  "settingsPlaceholderBody": "Ovde će biti tema, jezik i valuta.",
+  "coinDetailPlaceholderTitle": "Detalji koina",
+  "coinDetailPlaceholderBody": "Grafikon i statistika za {coinId} biće ovde."
+}
