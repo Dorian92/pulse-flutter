@@ -1,0 +1,71 @@
+import 'package:get_it/get_it.dart';
+import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
+import 'package:pulse/core/config/app_config.dart';
+import 'package:pulse/core/connectivity/connectivity_plus_service.dart';
+import 'package:pulse/core/connectivity/connectivity_service.dart';
+import 'package:pulse/core/network/api_client.dart';
+import 'package:pulse/core/realtime/symbol_mapper.dart';
+import 'package:pulse/core/storage/cache_store.dart';
+import 'package:pulse/core/storage/hive_boxes.dart';
+import 'package:pulse/core/time/clock.dart';
+
+/// Global service locator (composition root only).
+final GetIt sl = GetIt.instance;
+
+/// Registers core dependencies. Call after [HiveBoxes.init].
+///
+/// Tests may pass overrides, or call [resetDependencies] first.
+Future<void> configureDependencies({
+  AppConfig? appConfig,
+  http.Client? httpClient,
+  ConnectivityService? connectivityService,
+  Clock? clock,
+  CacheStore? cacheStore,
+  SymbolMapper? symbolMapper,
+}) async {
+  if (!sl.isRegistered<AppConfig>()) {
+    sl.registerSingleton<AppConfig>(appConfig ?? const AppConfig());
+  }
+  if (!sl.isRegistered<Clock>()) {
+    sl.registerSingleton<Clock>(clock ?? const SystemClock());
+  }
+  if (!sl.isRegistered<http.Client>()) {
+    sl.registerLazySingleton<http.Client>(
+      () => httpClient ?? http.Client(),
+      dispose: (client) => client.close(),
+    );
+  }
+  if (!sl.isRegistered<ConnectivityService>()) {
+    sl.registerLazySingleton<ConnectivityService>(
+      () => connectivityService ?? ConnectivityPlusService(),
+    );
+  }
+  if (!sl.isRegistered<ApiClient>()) {
+    sl.registerLazySingleton<ApiClient>(
+      () => ApiClient(
+        httpClient: sl<http.Client>(),
+        config: sl<AppConfig>(),
+        clock: sl<Clock>(),
+      ),
+    );
+  }
+  if (!sl.isRegistered<CacheStore>()) {
+    sl.registerLazySingleton<CacheStore>(
+      () =>
+          cacheStore ??
+          CacheStore(
+            cacheBox: Hive.box<String>(HiveBoxes.pulseCache),
+            clock: sl<Clock>(),
+          ),
+    );
+  }
+  if (!sl.isRegistered<SymbolMapper>()) {
+    sl.registerSingleton<SymbolMapper>(symbolMapper ?? const SymbolMapper());
+  }
+}
+
+/// Clears registrations (for tests).
+Future<void> resetDependencies() async {
+  await sl.reset();
+}

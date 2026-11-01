@@ -134,4 +134,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get removeActionLabel => 'Remove';
+
+  @override
+  String get errorOffline =>
+      'You appear to be offline. Check your connection and try again.';
+
+  @override
+  String get errorNetwork =>
+      'Network error. Check your connection and try again.';
+
+  @override
+  String get errorTimeout => 'The request timed out. Please try again.';
+
+  @override
+  String get errorRateLimit =>
+      'Too many requests. Please wait a moment and try again.';
+
+  @override
+  String errorRateLimitRetryAfter(int seconds) {
+    return 'Rate limited. Try again in $seconds seconds.';
+  }
+
+  @override
+  String get errorServer =>
+      'The service is unavailable right now. Please try again later.';
+
+  @override
+  String get errorParsing => 'Could not read the server response.';
+
+  @override
+  String get errorNotFound => 'That item could not be found.';
+
+  @override
+  String get errorCache => 'Local storage error. Try refreshing the data.';
+
+  @override
+  String get errorUnknown => 'Something went wrong. Please try again.';
 }
