@@ -15,17 +15,18 @@ void main() {
     const result = Success<int>(42, isStale: true);
     expect(
       result.when(
-        success: (value, isStale) => (value, isStale),
+        success: (value, isStale, refreshError) =>
+            (value, isStale, refreshError),
         failure: (_) => null,
       ),
-      (42, true),
+      (42, true, null),
     );
   });
 
   test('Failure carries AppFailure', () {
     const result = Failure<int>(NotFoundFailure(statusCode: 404));
     expect(
-      result.when(success: (_, _) => null, failure: (error) => error),
+      result.when(success: (_, __, ___) => null, failure: (error) => error),
       isA<NotFoundFailure>(),
     );
   });

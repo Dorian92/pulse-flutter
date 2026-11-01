@@ -85,21 +85,24 @@ Delivery is split into **eight PRs** (one step each). Each PR should stay review
 
 **Scope**
 
-- Feature module `markets/`: models, remote (CoinGecko markets + Binance 24hr batch), local cache, repository, bloc, UI list.
-- Cache-first TTL 10 min; pull-to-refresh.
-- Search (client filter) and sort (market cap, name, 24h change).
-- Sparkline from CoinGecko `sparkline_in_7d`.
+- Feature module `markets/`: models, remote (CoinGecko `/coins/markets` + `/global`), local cache, repository, bloc, UI list.
+- Cache-first TTL 10 min; pull-to-refresh bypasses TTL.
+- Search (client filter), filter chips (All / Gainers / Losers; watchlist chip hidden until step 7).
+- Sparkline from CoinGecko `sparkline_in_7d`; **MarketSummaryCard** from global endpoint.
+- “No live feed” badge via `SymbolMapper`; LIVE indicator placeholder (no WebSocket).
+- Binance 24hr batch deferred to step 5 (live price fusion).
 
 **Acceptance criteria**
 
 - Shows ~100 coins from network with loading/error/empty states.
-- Offline shows cached list + stale badge when applicable.
-- CoinGecko key from dart-define.
+- Offline shows cached list + stale banner when applicable.
+- CoinGecko key from dart-define; tap row navigates to `/coin/:id`.
 
 **Tests**
 
-- Repository tests with mocked HTTP + fake cache.
+- Model JSON fixtures; repository tests with mocked HTTP + fake cache.
 - `MarketsBloc` load / refresh / error via `bloc_test`.
+- Widget tests for markets screen loading, error, stale banner.
 
 ---
 

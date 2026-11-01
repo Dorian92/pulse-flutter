@@ -49,5 +49,9 @@
   "errorParsing": "Odgovor servera nije moguće pročitati.",
   "errorNotFound": "Stavka nije pronađena.",
   "errorCache": "Greška lokalne memorije. Osvežite podatke.",
-  "errorUnknown": "Došlo je do greške. Pokušajte ponovo."
+  "errorUnknown": "Došlo je do greške. Pokušajte ponovo.",
+  "marketsSearchHint": "Pretraži koini",
+  "marketsRetry": "Pokušaj ponovo",
+  "marketsEmptyFilter": "Nema koina za ovaj filter.",
+  "marketsNoSearchResults": "Nema rezultata pretrage."
 }

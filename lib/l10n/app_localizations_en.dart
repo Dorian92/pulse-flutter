@@ -170,4 +170,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorUnknown => 'Something went wrong. Please try again.';
+
+  @override
+  String get marketsSearchHint => 'Search coins';
+
+  @override
+  String get marketsRetry => 'Try again';
+
+  @override
+  String get marketsEmptyFilter => 'No coins match this filter.';
+
+  @override
+  String get marketsNoSearchResults => 'No coins match your search.';
 }
