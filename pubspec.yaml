@@ -13,7 +13,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   go_router: ^16.2.0
-  intl: any
+  intl: 0.20.3
 
 dev_dependencies:
   flutter_lints: ^5.0.0
