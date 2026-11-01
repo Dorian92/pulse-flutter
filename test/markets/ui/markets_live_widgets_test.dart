@@ -14,12 +14,7 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: const Scaffold(
-          body: Row(
-            children: [
-              LiveIndicator(active: false),
-              LiveIndicator(),
-            ],
-          ),
+          body: Row(children: [LiveIndicator(active: false), LiveIndicator()]),
         ),
       ),
     );
