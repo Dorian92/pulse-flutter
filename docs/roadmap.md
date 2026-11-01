@@ -1,6 +1,6 @@
 # Roadmap
 
-Delivery is split into **seven PRs** (one step each). Each PR should stay reviewable, update docs when behaviour changes, and include tests listed under acceptance criteria.
+Delivery is split into **eight PRs** (one step each). Each PR should stay reviewable, update docs when behaviour changes, and include tests listed under acceptance criteria.
 
 ---
 
@@ -27,7 +27,35 @@ Delivery is split into **seven PRs** (one step each). Each PR should stay review
 
 ---
 
-## Step 2 — Core: ApiClient, Result, failures, storage, DI
+## Step 2 — Design system
+
+**Scope**
+
+- Tokenized theme (dark-first + light): colors, typography with tabular figures, spacing, radius, motion.
+- Reusable presentational widgets in `core/widgets/` (list tile, sparkline, pills, banners, chips, stats grid, shimmer).
+- EUR / percent / compact formatters with en + sr_Latn.
+- Debug-only Design gallery screen (Settings entry).
+- Docs: `docs/plans/design-system.md`, `docs/design.md`, `docs/design/`.
+
+**Acceptance criteria**
+
+- No hardcoded colors in widgets; components match approved visual direction.
+- Design gallery shows all components and theme toggle.
+- CI green.
+
+**Tests**
+
+- Widget tests for components (states, trend colors).
+- Unit tests for formatters.
+- Golden tests optional/skipped if not deterministic on CI.
+
+**Out of scope**
+
+- Interactive coin detail chart (step 6 — coin detail with charts).
+
+---
+
+## Step 3 — Core: ApiClient, Result, failures, storage, DI
 
 **Scope**
 
@@ -35,7 +63,7 @@ Delivery is split into **seven PRs** (one step each). Each PR should stay review
 - `ApiClient` (timeouts, JSON decode, 429 mapping).
 - `CacheStore` + Hive bootstrap (boxes, envelope type).
 - `get_it` in `core/di/injection.dart` only.
-- `SymbolMapper` stub (manual map for dev until step 3).
+- `SymbolMapper` stub (manual map for dev until step 4).
 
 **Acceptance criteria**
 
@@ -49,7 +77,7 @@ Delivery is split into **seven PRs** (one step each). Each PR should stay review
 
 ---
 
-## Step 3 — Markets list via REST with caching
+## Step 4 — Markets list via REST with caching
 
 **Scope**
 
@@ -71,7 +99,7 @@ Delivery is split into **seven PRs** (one step each). Each PR should stay review
 
 ---
 
-## Step 4 — Live prices with `PriceStreamService`
+## Step 5 — Live prices with `PriceStreamService`
 
 **Scope**
 
@@ -92,13 +120,13 @@ Delivery is split into **seven PRs** (one step each). Each PR should stay review
 
 ---
 
-## Step 5 — Coin detail with charts
+## Step 6 — Coin detail with charts
 
 **Scope**
 
 - `coin_detail/`: CoinGecko detail endpoint, Binance klines per range, chart widget (`fl_chart`).
 - Ranges 1D / 1W / 1M / 1Y with caching TTLs from `caching.md`.
-- Stats section, description, links; watchlist toggle (persist stub OK if step 6 completes persistence).
+- Stats section, description, links; watchlist toggle (persist stub OK if step 7 completes persistence).
 
 **Acceptance criteria**
 
@@ -112,7 +140,7 @@ Delivery is split into **seven PRs** (one step each). Each PR should stay review
 
 ---
 
-## Step 6 — Watchlist, settings, l10n
+## Step 7 — Watchlist, settings, l10n
 
 **Scope**
 
@@ -135,7 +163,7 @@ Delivery is split into **seven PRs** (one step each). Each PR should stay review
 
 ---
 
-## Step 7 — Tests polish, README, demo recording
+## Step 8 — Tests polish, README, demo recording
 
 **Scope**
 
@@ -156,7 +184,7 @@ Delivery is split into **seven PRs** (one step each). Each PR should stay review
 
 ---
 
-## After v1 (out of scope for steps 1–7)
+## After v1 (out of scope for steps 1–8)
 
 - React Native twin repository.
 - CoinGecko Pro / Binance signed endpoints (not needed for Pulse).
