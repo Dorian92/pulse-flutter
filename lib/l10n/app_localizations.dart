@@ -338,6 +338,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove'**
   String get removeActionLabel;
+
+  /// No description provided for @errorOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You appear to be offline. Check your connection and try again.'**
+  String get errorOffline;
+
+  /// No description provided for @errorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Check your connection and try again.'**
+  String get errorNetwork;
+
+  /// No description provided for @errorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The request timed out. Please try again.'**
+  String get errorTimeout;
+
+  /// No description provided for @errorRateLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests. Please wait a moment and try again.'**
+  String get errorRateLimit;
+
+  /// No description provided for @errorRateLimitRetryAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate limited. Try again in {seconds} seconds.'**
+  String errorRateLimitRetryAfter(int seconds);
+
+  /// No description provided for @errorServer.
+  ///
+  /// In en, this message translates to:
+  /// **'The service is unavailable right now. Please try again later.'**
+  String get errorServer;
+
+  /// No description provided for @errorParsing.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the server response.'**
+  String get errorParsing;
+
+  /// No description provided for @errorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'That item could not be found.'**
+  String get errorNotFound;
+
+  /// No description provided for @errorCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Local storage error. Try refreshing the data.'**
+  String get errorCache;
+
+  /// No description provided for @errorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get errorUnknown;
 }
 
 class _AppLocalizationsDelegate

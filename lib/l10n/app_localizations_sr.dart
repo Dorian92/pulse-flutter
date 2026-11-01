@@ -133,6 +133,41 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get removeActionLabel => 'Ukloni';
+
+  @override
+  String get errorOffline =>
+      'Izgleda da ste offline. Proverite vezu i pokušajte ponovo.';
+
+  @override
+  String get errorNetwork =>
+      'Mrežna greška. Proverite vezu i pokušajte ponovo.';
+
+  @override
+  String get errorTimeout => 'Zahtev je istekao. Pokušajte ponovo.';
+
+  @override
+  String get errorRateLimit =>
+      'Previše zahteva. Sačekajte trenutak i pokušajte ponovo.';
+
+  @override
+  String errorRateLimitRetryAfter(int seconds) {
+    return 'Ograničen broj zahteva. Pokušajte ponovo za $seconds sek.';
+  }
+
+  @override
+  String get errorServer => 'Servis trenutno nije dostupan. Pokušajte kasnije.';
+
+  @override
+  String get errorParsing => 'Odgovor servera nije moguće pročitati.';
+
+  @override
+  String get errorNotFound => 'Stavka nije pronađena.';
+
+  @override
+  String get errorCache => 'Greška lokalne memorije. Osvežite podatke.';
+
+  @override
+  String get errorUnknown => 'Došlo je do greške. Pokušajte ponovo.';
 }
 
 /// The translations for Serbian, using the Latin script (`sr_Latn`).
@@ -264,4 +299,39 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
 
   @override
   String get removeActionLabel => 'Ukloni';
+
+  @override
+  String get errorOffline =>
+      'Izgleda da ste offline. Proverite vezu i pokušajte ponovo.';
+
+  @override
+  String get errorNetwork =>
+      'Mrežna greška. Proverite vezu i pokušajte ponovo.';
+
+  @override
+  String get errorTimeout => 'Zahtev je istekao. Pokušajte ponovo.';
+
+  @override
+  String get errorRateLimit =>
+      'Previše zahteva. Sačekajte trenutak i pokušajte ponovo.';
+
+  @override
+  String errorRateLimitRetryAfter(int seconds) {
+    return 'Ograničen broj zahteva. Pokušajte ponovo za $seconds sek.';
+  }
+
+  @override
+  String get errorServer => 'Servis trenutno nije dostupan. Pokušajte kasnije.';
+
+  @override
+  String get errorParsing => 'Odgovor servera nije moguće pročitati.';
+
+  @override
+  String get errorNotFound => 'Stavka nije pronađena.';
+
+  @override
+  String get errorCache => 'Greška lokalne memorije. Osvežite podatke.';
+
+  @override
+  String get errorUnknown => 'Došlo je do greške. Pokušajte ponovo.';
 }

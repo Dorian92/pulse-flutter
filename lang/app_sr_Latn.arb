@@ -39,5 +39,15 @@
   "designGallerySectionComponents": "Komponente",
   "designGalleryChartDeferred": "Interaktivni grafikon stiže u koraku detalja koina.",
   "designGalleryTriggerFlash": "Pokreni live flash",
-  "removeActionLabel": "Ukloni"
+  "removeActionLabel": "Ukloni",
+  "errorOffline": "Izgleda da ste offline. Proverite vezu i pokušajte ponovo.",
+  "errorNetwork": "Mrežna greška. Proverite vezu i pokušajte ponovo.",
+  "errorTimeout": "Zahtev je istekao. Pokušajte ponovo.",
+  "errorRateLimit": "Previše zahteva. Sačekajte trenutak i pokušajte ponovo.",
+  "errorRateLimitRetryAfter": "Ograničen broj zahteva. Pokušajte ponovo za {seconds} sek.",
+  "errorServer": "Servis trenutno nije dostupan. Pokušajte kasnije.",
+  "errorParsing": "Odgovor servera nije moguće pročitati.",
+  "errorNotFound": "Stavka nije pronađena.",
+  "errorCache": "Greška lokalne memorije. Osvežite podatke.",
+  "errorUnknown": "Došlo je do greške. Pokušajte ponovo."
 }
