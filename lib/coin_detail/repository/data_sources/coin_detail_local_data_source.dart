@@ -1,7 +1,7 @@
-import 'package:pulse/core/storage/cache_store.dart';
 import 'package:pulse/coin_detail/models/chart_range_config.dart';
 import 'package:pulse/coin_detail/models/coin_detail.dart';
 import 'package:pulse/coin_detail/models/price_chart_series.dart';
+import 'package:pulse/core/storage/cache_store.dart';
 import 'package:pulse/core/widgets/period_selector.dart';
 
 /// Hive-backed cache for coin detail metadata and chart series.

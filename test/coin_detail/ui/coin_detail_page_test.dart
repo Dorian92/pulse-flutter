@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pulse/coin_detail/bloc/coin_detail_bloc.dart';
-import 'package:pulse/coin_detail/models/coin_detail.dart';
 import 'package:pulse/coin_detail/models/chart_point.dart';
+import 'package:pulse/coin_detail/models/coin_detail.dart';
 import 'package:pulse/coin_detail/models/price_chart_series.dart';
 import 'package:pulse/coin_detail/ui/coin_detail_page.dart';
 import 'package:pulse/core/realtime/realtime_status.dart';
@@ -32,7 +32,7 @@ CoinDetail _detail({String? binanceSymbol}) {
     circulatingSupply: 1e9,
     athEur: 50,
     aboutTextEn: 'Decentralized oracle network.',
-    fetchedAt: DateTime.utc(2026, 1, 1),
+    fetchedAt: DateTime.utc(2026),
     binanceSymbol: binanceSymbol,
   );
 }
@@ -43,7 +43,7 @@ CoinDetailState _loadedState({String? binanceSymbol}) {
     detail: _detail(binanceSymbol: binanceSymbol),
     chart: PriceChartSeries(
       points: [
-        ChartPoint(timestamp: DateTime.utc(2026, 1, 1), priceEur: 19),
+        ChartPoint(timestamp: DateTime.utc(2026), priceEur: 19),
         ChartPoint(timestamp: DateTime.utc(2026, 1, 2), priceEur: 20),
       ],
       range: ChartPeriod.oneDay,
@@ -85,7 +85,7 @@ void main() {
   testWidgets('shows shimmer while loading', (tester) async {
     whenListen(
       bloc,
-      Stream<CoinDetailState>.empty(),
+      const Stream<CoinDetailState>.empty(),
       initialState: CoinDetailState.loading(coinId: 'bitcoin'),
     );
 
@@ -98,7 +98,7 @@ void main() {
   testWidgets('shows no live feed badge when pair missing', (tester) async {
     whenListen(
       bloc,
-      Stream<CoinDetailState>.empty(),
+      const Stream<CoinDetailState>.empty(),
       initialState: _loadedState(),
     );
 
@@ -111,7 +111,7 @@ void main() {
   testWidgets('period tap dispatches range changed', (tester) async {
     whenListen(
       bloc,
-      Stream<CoinDetailState>.empty(),
+      const Stream<CoinDetailState>.empty(),
       initialState: _loadedState(binanceSymbol: 'BTCUSDT'),
     );
     when(() => bloc.add(any())).thenReturn(null);

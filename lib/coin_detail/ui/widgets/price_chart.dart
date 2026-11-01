@@ -48,19 +48,14 @@ class PriceChart extends StatelessWidget {
           minY: chartMinY,
           maxY: chartMaxY,
           gridData: FlGridData(
-            show: true,
             drawVerticalLine: false,
             horizontalInterval: (chartMaxY - chartMinY) / 4,
             getDrawingHorizontalLine: (value) =>
                 FlLine(color: colors.borderSubtle, strokeWidth: 1),
           ),
           titlesData: FlTitlesData(
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
+            topTitles: const AxisTitles(),
+            rightTitles: const AxisTitles(),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -100,7 +95,6 @@ class PriceChart extends StatelessWidget {
           ),
           borderData: FlBorderData(show: false),
           lineTouchData: LineTouchData(
-            handleBuiltInTouches: true,
             touchTooltipData: LineTouchTooltipData(
               getTooltipColor: (_) => colors.surfaceElevated,
               getTooltipItems: (touchedSpots) {
@@ -132,13 +126,8 @@ class PriceChart extends StatelessWidget {
                     strokeWidth: 1,
                   ),
                   FlDotData(
-                    show: true,
                     getDotPainter: (spot, percent, bar, i) =>
-                        FlDotCirclePainter(
-                          radius: 4,
-                          color: lineColor,
-                          strokeWidth: 0,
-                        ),
+                        FlDotCirclePainter(radius: 4, color: lineColor),
                   ),
                 );
               }).toList();
@@ -149,7 +138,6 @@ class PriceChart extends StatelessWidget {
               spots: spots,
               isCurved: true,
               color: lineColor,
-              barWidth: 2,
               dotData: const FlDotData(show: false),
               belowBarData: BarAreaData(
                 show: true,

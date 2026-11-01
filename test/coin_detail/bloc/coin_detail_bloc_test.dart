@@ -1,17 +1,17 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pulse/coin_detail/bloc/coin_detail_bloc.dart';
-import 'package:pulse/coin_detail/models/coin_detail.dart';
 import 'package:pulse/coin_detail/models/chart_point.dart';
+import 'package:pulse/coin_detail/models/coin_detail.dart';
 import 'package:pulse/coin_detail/models/price_chart_series.dart';
 import 'package:pulse/coin_detail/repository/coin_detail_repository.dart';
 import 'package:pulse/coin_detail/watchlist/watchlist_toggle.dart';
 import 'package:pulse/core/error/app_failure.dart';
 import 'package:pulse/core/error/result.dart';
-import 'package:flutter/widgets.dart';
 import 'package:pulse/core/realtime/price_stream_service.dart';
 import 'package:pulse/core/realtime/price_tick.dart';
 import 'package:pulse/core/realtime/realtime_status.dart';
@@ -77,7 +77,7 @@ CoinDetail _detail() {
     circulatingSupply: 1,
     athEur: 1,
     aboutTextEn: 'About',
-    fetchedAt: DateTime.utc(2026, 1, 1),
+    fetchedAt: DateTime.utc(2026),
     binanceSymbol: 'BTCUSDT',
   );
 }
@@ -85,7 +85,7 @@ CoinDetail _detail() {
 PriceChartSeries _chart(ChartPeriod range) {
   return PriceChartSeries(
     points: [
-      ChartPoint(timestamp: DateTime.utc(2026, 1, 1), priceEur: 64000),
+      ChartPoint(timestamp: DateTime.utc(2026), priceEur: 64000),
       ChartPoint(timestamp: DateTime.utc(2026, 1, 2), priceEur: 65000),
     ],
     range: range,

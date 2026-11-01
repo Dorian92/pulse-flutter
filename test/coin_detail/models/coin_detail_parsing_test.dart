@@ -16,7 +16,7 @@ void main() {
       json,
       coinId: 'bitcoin',
       symbolMapper: SymbolMapper(),
-      fetchedAt: DateTime.utc(2026, 1, 1),
+      fetchedAt: DateTime.utc(2026),
     );
 
     expect(detail.id, 'bitcoin');

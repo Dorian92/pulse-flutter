@@ -3,13 +3,13 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:pulse/coin_detail/models/chart_point.dart';
+import 'package:pulse/coin_detail/models/coin_detail.dart';
+import 'package:pulse/coin_detail/models/price_chart_series.dart';
+import 'package:pulse/coin_detail/repository/coin_detail_repository.dart';
 import 'package:pulse/core/di/injection.dart';
 import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/storage/hive_boxes.dart';
-import 'package:pulse/coin_detail/models/coin_detail.dart';
-import 'package:pulse/coin_detail/models/chart_point.dart';
-import 'package:pulse/coin_detail/models/price_chart_series.dart';
-import 'package:pulse/coin_detail/repository/coin_detail_repository.dart';
 import 'package:pulse/core/widgets/period_selector.dart';
 import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
@@ -79,7 +79,7 @@ Future<void> initPulseTestDependencies() async {
         circulatingSupply: 1,
         athEur: 1,
         aboutTextEn: 'Test',
-        fetchedAt: DateTime.utc(2026, 6, 1),
+        fetchedAt: DateTime.utc(2026, 6),
         binanceSymbol: 'BTCUSDT',
       ),
     ),
@@ -93,7 +93,7 @@ Future<void> initPulseTestDependencies() async {
     (_) async => Success(
       PriceChartSeries(
         points: [
-          ChartPoint(timestamp: DateTime.utc(2026, 6, 1), priceEur: 1),
+          ChartPoint(timestamp: DateTime.utc(2026, 6), priceEur: 1),
           ChartPoint(timestamp: DateTime.utc(2026, 6, 2), priceEur: 2),
         ],
         range: ChartPeriod.oneDay,
