@@ -1,3 +1,4 @@
+import 'package:pulse/settings/repository/settings_repository.dart';
 import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/network/api_client.dart';
 import 'package:pulse/core/realtime/symbol_mapper.dart';
@@ -13,18 +14,21 @@ class MarketsRemoteDataSource {
     required ApiClient apiClient,
     required SymbolMapper symbolMapper,
     required Clock clock,
-    this.vsCurrency = 'eur',
+    required SettingsRepository settingsRepository,
     this.perPage = 100,
   }) : _apiClient = apiClient,
        _symbolMapper = symbolMapper,
-       _clock = clock;
+       _clock = clock,
+       _settingsRepository = settingsRepository;
 
   final ApiClient _apiClient;
   final SymbolMapper _symbolMapper;
   final Clock _clock;
+  final SettingsRepository _settingsRepository;
 
-  /// Quote currency for CoinGecko (EUR for this phase).
-  final String vsCurrency;
+  /// Quote currency for CoinGecko from user settings.
+  String get vsCurrency =>
+      _settingsRepository.current.displayCurrency.coingeckoCode;
 
   /// Number of coins per page (max 250 on CoinGecko).
   final int perPage;

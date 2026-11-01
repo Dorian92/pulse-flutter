@@ -8,6 +8,7 @@ import 'package:pulse/coin_detail/models/coin_detail.dart';
 import 'package:pulse/coin_detail/models/price_chart_series.dart';
 import 'package:pulse/coin_detail/repository/coin_detail_repository.dart';
 import 'package:pulse/core/di/injection.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
 import 'package:pulse/core/error/result.dart';
 import 'package:pulse/core/storage/hive_boxes.dart';
 import 'package:pulse/core/widgets/period_selector.dart';
@@ -108,4 +109,5 @@ Future<void> initPulseTestDependencies() async {
     marketsRepository: marketsRepository,
     coinDetailRepository: coinDetailRepository,
   );
+  await sl<SettingsRepository>().load();
 }

@@ -291,11 +291,137 @@ abstract class AppLocalizations {
   /// **'Edit'**
   String get watchlistEdit;
 
+  /// No description provided for @watchlistDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get watchlistDone;
+
   /// No description provided for @watchlistEmptyHint.
   ///
   /// In en, this message translates to:
   /// **'Add assets to track them here.'**
   String get watchlistEmptyHint;
+
+  /// No description provided for @watchlistBrowseMarkets.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse markets'**
+  String get watchlistBrowseMarkets;
+
+  /// No description provided for @watchlistUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get watchlistUndo;
+
+  /// No description provided for @watchlistRemovedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {coinName} from watchlist'**
+  String watchlistRemovedSnackbar(String coinName);
+
+  /// No description provided for @settingsAppearanceSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsAppearanceSection;
+
+  /// No description provided for @settingsThemeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get settingsThemeSystem;
+
+  /// No description provided for @settingsThemeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsThemeLight;
+
+  /// No description provided for @settingsThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsThemeDark;
+
+  /// No description provided for @settingsLanguageSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguageSection;
+
+  /// No description provided for @settingsLanguageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get settingsLanguageEnglish;
+
+  /// No description provided for @settingsLanguageSerbian.
+  ///
+  /// In en, this message translates to:
+  /// **'Srpski (latinica)'**
+  String get settingsLanguageSerbian;
+
+  /// No description provided for @settingsCurrencySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Display currency'**
+  String get settingsCurrencySection;
+
+  /// No description provided for @settingsCurrencyEur.
+  ///
+  /// In en, this message translates to:
+  /// **'Euro (EUR)'**
+  String get settingsCurrencyEur;
+
+  /// No description provided for @settingsCurrencyUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'US dollar (USD)'**
+  String get settingsCurrencyUsd;
+
+  /// No description provided for @settingsDataSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get settingsDataSection;
+
+  /// No description provided for @settingsClearCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cached market data'**
+  String get settingsClearCache;
+
+  /// No description provided for @settingsCacheCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache cleared'**
+  String get settingsCacheCleared;
+
+  /// No description provided for @settingsAboutSection.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAboutSection;
+
+  /// No description provided for @settingsVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get settingsVersion;
+
+  /// No description provided for @settingsLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-source licenses'**
+  String get settingsLicenses;
+
+  /// No description provided for @settingsGitHub.
+  ///
+  /// In en, this message translates to:
+  /// **'View on GitHub'**
+  String get settingsGitHub;
 
   /// No description provided for @designGalleryTitle.
   ///

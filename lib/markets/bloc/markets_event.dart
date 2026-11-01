@@ -57,7 +57,22 @@ final class MarketsRealtimeStatusChanged extends MarketsEvent {
   List<Object?> get props => [status];
 }
 
-/// ExchangeInfo map finished loading; re-bind Binance symbols on list rows.
+/// Symbol mapping finished; re-bind Binance symbols on list rows.
 final class MarketsSymbolMappingUpdated extends MarketsEvent {
   const MarketsSymbolMappingUpdated();
+}
+
+/// User toggled watchlist star on a row.
+final class MarketsWatchlistToggled extends MarketsEvent {
+  const MarketsWatchlistToggled(this.coinId);
+
+  final String coinId;
+
+  @override
+  List<Object?> get props => [coinId];
+}
+
+/// Display currency or locale changed in settings.
+final class MarketsPreferencesChanged extends MarketsEvent {
+  const MarketsPreferencesChanged();
 }

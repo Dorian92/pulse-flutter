@@ -17,6 +17,9 @@ import 'package:pulse/core/widgets/shimmer_skeleton.dart';
 import 'package:pulse/l10n/app_localizations.dart';
 import 'package:pulse/markets/bloc/markets_bloc.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
+import 'package:pulse/settings/bloc/settings_cubit.dart';
+import 'package:pulse/settings/repository/settings_repository.dart';
+import 'package:pulse/watchlist/repository/watchlist_repository.dart';
 
 /// Top coins list with REST cache and live Binance price merges.
 class MarketsPage extends StatelessWidget {
@@ -39,6 +42,8 @@ class MarketsPage extends StatelessWidget {
               subscriptionCoordinator: sl<RealtimeSubscriptionCoordinator>(),
               priceStreamService: sl<PriceStreamService>(),
               symbolMapper: sl<SymbolMapper>(),
+              watchlistRepository: sl<WatchlistRepository>(),
+              settingsRepository: sl<SettingsRepository>(),
             );
         if (bloc == null) {
           marketsBloc.add(const MarketsRequested());
@@ -170,6 +175,11 @@ class _MarketsViewState extends State<_MarketsView> {
     }
 
     final locale = Localizations.localeOf(context).toString();
+    final currency = context
+        .watch<SettingsCubit>()
+        .state
+        .preferences
+        .displayCurrency;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -189,7 +199,7 @@ class _MarketsViewState extends State<_MarketsView> {
                 children: [
                   FilterChipsRow(
                     selected: state.filter,
-                    includeWatchlistChip: false,
+                    includeWatchlistChip: true,
                     onSelected: (filter) {
                       context.read<MarketsBloc>().add(
                         MarketsFilterChanged(filter),
@@ -199,10 +209,12 @@ class _MarketsViewState extends State<_MarketsView> {
                   SizedBox(height: tokens.spacingMd),
                   if (snapshot.global.hasMarketCap)
                     MarketSummaryCard(
-                      marketCapText: PulseFormatters.formatCompactCurrency(
-                        snapshot.global.totalMarketCapEur!,
-                        locale,
-                      ),
+                      marketCapText:
+                          PulseFormatters.formatCompactDisplayCurrency(
+                            snapshot.global.totalMarketCapEur!,
+                            locale,
+                            currency,
+                          ),
                       changePercent: snapshot.global.marketCapChangePercent24h,
                     ),
                   if (snapshot.global.hasMarketCap)
@@ -239,29 +251,55 @@ class _MarketsViewState extends State<_MarketsView> {
                 separatorBuilder: (_, __) => SizedBox(height: tokens.spacingSm),
                 itemBuilder: (context, index) {
                   final coin = state.visibleCoins[index];
-                  return CoinListTile(
-                    compactSparkline: true,
-                    name: coin.name,
-                    symbol: coin.symbol,
-                    priceText: PulseFormatters.formatEurPrice(
-                      coin.currentPriceEur,
-                      locale,
-                    ),
-                    changePercent: coin.priceChangePercent24h,
-                    sparklineValues: coin.sparkline7d,
-                    showNoLiveFeedBadge: !coin.hasLiveFeed,
-                    liveFlashToken: coin.id == state.liveFlashCoinId
-                        ? state.liveFlashGeneration
-                        : null,
-                    icon: coin.imageUrl.isEmpty
-                        ? null
-                        : CircleAvatar(
-                            backgroundImage: NetworkImage(coin.imageUrl),
-                            backgroundColor:
-                                context.pulseColors.chipUnselectedFill,
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: CoinListTile(
+                          compactSparkline: true,
+                          name: coin.name,
+                          symbol: coin.symbol,
+                          priceText: PulseFormatters.formatDisplayPrice(
+                            coin.currentPriceEur,
+                            locale,
+                            currency,
                           ),
-                    onTap: () =>
-                        context.push(AppRoutes.coinDetailPath(coin.id)),
+                          changePercent: coin.priceChangePercent24h,
+                          sparklineValues: coin.sparkline7d,
+                          showNoLiveFeedBadge: !coin.hasLiveFeed,
+                          liveFlashToken: coin.id == state.liveFlashCoinId
+                              ? state.liveFlashGeneration
+                              : null,
+                          icon: coin.imageUrl.isEmpty
+                              ? null
+                              : CircleAvatar(
+                                  backgroundImage: NetworkImage(coin.imageUrl),
+                                  backgroundColor:
+                                      context.pulseColors.chipUnselectedFill,
+                                ),
+                          onTap: () =>
+                              context.push(AppRoutes.coinDetailPath(coin.id)),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: state.watchedIds.contains(coin.id)
+                            ? l10n.coinDetailRemoveWatchlist
+                            : l10n.coinDetailAddWatchlist,
+                        onPressed: () {
+                          context.read<MarketsBloc>().add(
+                            MarketsWatchlistToggled(coin.id),
+                          );
+                        },
+                        icon: Icon(
+                          state.watchedIds.contains(coin.id)
+                              ? Icons.star
+                              : Icons.star_border,
+                          color: state.watchedIds.contains(coin.id)
+                              ? context.pulseColors.accent
+                              : null,
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),

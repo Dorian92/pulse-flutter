@@ -111,7 +111,72 @@ class AppLocalizationsEn extends AppLocalizations {
   String get watchlistEdit => 'Edit';
 
   @override
+  String get watchlistDone => 'Done';
+
+  @override
   String get watchlistEmptyHint => 'Add assets to track them here.';
+
+  @override
+  String get watchlistBrowseMarkets => 'Browse markets';
+
+  @override
+  String get watchlistUndo => 'Undo';
+
+  @override
+  String watchlistRemovedSnackbar(String coinName) {
+    return 'Removed $coinName from watchlist';
+  }
+
+  @override
+  String get settingsAppearanceSection => 'Appearance';
+
+  @override
+  String get settingsThemeSystem => 'System default';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeDark => 'Dark';
+
+  @override
+  String get settingsLanguageSection => 'Language';
+
+  @override
+  String get settingsLanguageEnglish => 'English';
+
+  @override
+  String get settingsLanguageSerbian => 'Srpski (latinica)';
+
+  @override
+  String get settingsCurrencySection => 'Display currency';
+
+  @override
+  String get settingsCurrencyEur => 'Euro (EUR)';
+
+  @override
+  String get settingsCurrencyUsd => 'US dollar (USD)';
+
+  @override
+  String get settingsDataSection => 'Data';
+
+  @override
+  String get settingsClearCache => 'Clear cached market data';
+
+  @override
+  String get settingsCacheCleared => 'Cache cleared';
+
+  @override
+  String get settingsAboutSection => 'About';
+
+  @override
+  String get settingsVersion => 'Version';
+
+  @override
+  String get settingsLicenses => 'Open-source licenses';
+
+  @override
+  String get settingsGitHub => 'View on GitHub';
 
   @override
   String get designGalleryTitle => 'Design gallery';

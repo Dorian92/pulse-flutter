@@ -49,7 +49,35 @@
   "statCirculatingSupply": "Circulating supply",
   "statAllTimeHigh": "All-time high",
   "watchlistEdit": "Edit",
+  "watchlistDone": "Done",
   "watchlistEmptyHint": "Add assets to track them here.",
+  "watchlistBrowseMarkets": "Browse markets",
+  "watchlistUndo": "Undo",
+  "watchlistRemovedSnackbar": "Removed {coinName} from watchlist",
+  "@watchlistRemovedSnackbar": {
+    "placeholders": {
+      "coinName": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAppearanceSection": "Appearance",
+  "settingsThemeSystem": "System default",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsLanguageSection": "Language",
+  "settingsLanguageEnglish": "English",
+  "settingsLanguageSerbian": "Srpski (latinica)",
+  "settingsCurrencySection": "Display currency",
+  "settingsCurrencyEur": "Euro (EUR)",
+  "settingsCurrencyUsd": "US dollar (USD)",
+  "settingsDataSection": "Data",
+  "settingsClearCache": "Clear cached market data",
+  "settingsCacheCleared": "Cache cleared",
+  "settingsAboutSection": "About",
+  "settingsVersion": "Version",
+  "settingsLicenses": "Open-source licenses",
+  "settingsGitHub": "View on GitHub",
   "designGalleryTitle": "Design gallery",
   "designGalleryOpen": "Open design gallery",
   "designGalleryThemeToggle": "Toggle theme",

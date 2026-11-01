@@ -16,9 +16,14 @@ import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/ui/markets_page.dart';
+import 'package:pulse/settings/bloc/settings_cubit.dart';
+import 'package:pulse/settings/bloc/settings_state.dart';
 
 class MockMarketsBloc extends MockBloc<MarketsEvent, MarketsState>
     implements MarketsBloc {}
+
+class MockSettingsCubit extends MockCubit<SettingsState>
+    implements SettingsCubit {}
 
 MarketsSnapshot _snapshot({required DateTime fetchedAt}) {
   return MarketsSnapshot(
@@ -55,9 +60,19 @@ MarketsSnapshot _snapshot({required DateTime fetchedAt}) {
 
 void main() {
   late MockMarketsBloc bloc;
+  late MockSettingsCubit settingsCubit;
 
   setUp(() {
     bloc = MockMarketsBloc();
+    settingsCubit = MockSettingsCubit();
+    when(() => settingsCubit.state).thenReturn(const SettingsState.initial());
+    when(
+      () => settingsCubit.stream,
+    ).thenAnswer((_) => Stream.value(const SettingsState.initial()));
+  });
+
+  tearDown(() async {
+    await settingsCubit.close();
   });
 
   Widget wrapWithRouter(Widget child) {
@@ -79,11 +94,14 @@ void main() {
       ],
     );
 
-    return MaterialApp.router(
-      theme: AppTheme.dark(),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      routerConfig: router,
+    return BlocProvider<SettingsCubit>.value(
+      value: settingsCubit,
+      child: MaterialApp.router(
+        theme: AppTheme.dark(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
+      ),
     );
   }
 
