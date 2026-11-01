@@ -23,7 +23,7 @@ class SymbolMapper {
 
   /// Returns a Binance *USDT symbol (e.g. `BTCUSDT`) or null when no pair is known.
   ///
-  /// Only [_knownIds] and [overrides] are consulted until step 4+ builds a map
+  /// Only [_knownIds] and [overrides] are consulted until step 5+ builds a map
   /// from Binance `exchangeInfo` (unknown ids show the “no live feed” badge).
   String? binanceUsdtSymbolFor({required String coinGeckoId}) {
     final override = _overrides[coinGeckoId];

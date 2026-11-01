@@ -2,9 +2,12 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pulse/core/error/app_failure.dart';
+import 'package:pulse/core/router/app_router.dart';
 import 'package:pulse/core/theme/app_theme.dart';
+import 'package:pulse/core/widgets/no_live_feed_badge.dart';
 import 'package:pulse/core/widgets/offline_banner.dart';
 import 'package:pulse/core/widgets/shimmer_skeleton.dart';
 import 'package:pulse/l10n/app_localizations.dart';
@@ -36,6 +39,16 @@ MarketsSnapshot _snapshot({required DateTime fetchedAt}) {
         sparkline7d: [1, 2, 3],
         binanceSymbol: 'BTCUSDT',
       ),
+      MarketCoin(
+        id: 'unknown-alt',
+        symbol: 'unk',
+        name: 'Unknown Alt',
+        imageUrl: '',
+        currentPriceEur: 1,
+        priceChangePercent24h: -1,
+        marketCapRank: 99,
+        sparkline7d: [1],
+      ),
     ],
   );
 }
@@ -47,12 +60,30 @@ void main() {
     bloc = MockMarketsBloc();
   });
 
-  Widget wrap(Widget child) {
-    return MaterialApp(
+  Widget wrapWithRouter(Widget child) {
+    final router = GoRouter(
+      initialLocation: AppRoutes.markets,
+      routes: [
+        GoRoute(
+          path: AppRoutes.markets,
+          builder: (context, state) =>
+              BlocProvider<MarketsBloc>.value(value: bloc, child: child),
+        ),
+        GoRoute(
+          path: AppRoutes.coinDetail,
+          builder: (context, state) {
+            final coinId = state.pathParameters['coinId'] ?? '';
+            return Scaffold(body: Text('detail:$coinId'));
+          },
+        ),
+      ],
+    );
+
+    return MaterialApp.router(
       theme: AppTheme.dark(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: BlocProvider<MarketsBloc>.value(value: bloc, child: child),
+      routerConfig: router,
     );
   }
 
@@ -65,7 +96,7 @@ void main() {
       initialState: const MarketsState.loading(),
     );
 
-    await tester.pumpWidget(wrap(MarketsPage(bloc: bloc)));
+    await tester.pumpWidget(wrapWithRouter(MarketsPage(bloc: bloc)));
     await tester.pump();
 
     expect(find.byType(ShimmerSkeleton), findsWidgets);
@@ -91,7 +122,7 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(wrap(MarketsPage(bloc: bloc)));
+    await tester.pumpWidget(wrapWithRouter(MarketsPage(bloc: bloc)));
     await tester.pumpAndSettle();
 
     expect(find.byType(OfflineBanner), findsOneWidget);
@@ -109,9 +140,53 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(wrap(MarketsPage(bloc: bloc)));
+    await tester.pumpWidget(wrapWithRouter(MarketsPage(bloc: bloc)));
     await tester.pumpAndSettle();
 
     expect(find.text('Try again'), findsOneWidget);
+  });
+
+  testWidgets('row tap navigates to coin detail route', (tester) async {
+    final fetchedAt = DateTime.utc(2026, 6, 1, 12);
+    final snapshot = _snapshot(fetchedAt: fetchedAt);
+    whenListen(
+      bloc,
+      Stream.value(
+        MarketsState.loaded(snapshot: snapshot, visibleCoins: snapshot.coins),
+      ),
+      initialState: MarketsState.loaded(
+        snapshot: snapshot,
+        visibleCoins: snapshot.coins,
+      ),
+    );
+
+    await tester.pumpWidget(wrapWithRouter(MarketsPage(bloc: bloc)));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Bitcoin'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('detail:bitcoin'), findsOneWidget);
+  });
+
+  testWidgets('shows no live feed badge for unmapped symbol', (tester) async {
+    final fetchedAt = DateTime.utc(2026, 6, 1, 12);
+    final snapshot = _snapshot(fetchedAt: fetchedAt);
+    whenListen(
+      bloc,
+      Stream.value(
+        MarketsState.loaded(snapshot: snapshot, visibleCoins: snapshot.coins),
+      ),
+      initialState: MarketsState.loaded(
+        snapshot: snapshot,
+        visibleCoins: snapshot.coins,
+      ),
+    );
+
+    await tester.pumpWidget(wrapWithRouter(MarketsPage(bloc: bloc)));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NoLiveFeedBadge), findsOneWidget);
+    expect(find.text('No live feed'), findsOneWidget);
   });
 }

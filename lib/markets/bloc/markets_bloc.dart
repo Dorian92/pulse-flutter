@@ -119,7 +119,7 @@ class MarketsBloc extends Bloc<MarketsEvent, MarketsState> {
     required bool refreshAttempt,
   }) {
     switch (result) {
-      case Success(:final value, :final isStale):
+      case Success(:final value, :final isStale, :final refreshError):
         final visible = _applyFilters(
           coins: value.coins,
           query: state.searchQuery,
@@ -132,11 +132,7 @@ class MarketsBloc extends Bloc<MarketsEvent, MarketsState> {
             isStale: isStale,
             searchQuery: state.searchQuery,
             filter: state.filter,
-          ).copyWith(
-            refreshFailure: refreshAttempt && isStale
-                ? const NetworkFailure(offline: true)
-                : null,
-          ),
+          ).copyWith(refreshFailure: refreshAttempt ? refreshError : null),
         );
       case Failure(:final error):
         if (state.snapshot != null) {

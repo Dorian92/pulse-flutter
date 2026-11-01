@@ -6,11 +6,16 @@ sealed class Result<T> {
 
   /// Pattern-matches success vs failure.
   R when<R>({
-    required R Function(T value, bool isStale) success,
+    required R Function(T value, bool isStale, AppFailure? refreshError)
+    success,
     required R Function(AppFailure error) failure,
   }) {
     return switch (this) {
-      Success<T>(:final value, :final isStale) => success(value, isStale),
+      Success<T>(:final value, :final isStale, :final refreshError) => success(
+        value,
+        isStale,
+        refreshError,
+      ),
       Failure<T>(:final error) => failure(error),
     };
   }
@@ -19,13 +24,16 @@ sealed class Result<T> {
 /// Successful result, optionally marked stale when served from expired cache.
 final class Success<T> extends Result<T> {
   /// Creates a success value.
-  const Success(this.value, {this.isStale = false});
+  const Success(this.value, {this.isStale = false, this.refreshError});
 
   /// The successful value.
   final T value;
 
   /// True when [value] was loaded from expired cache (offline / failed refresh).
   final bool isStale;
+
+  /// When a refresh failed but cached [value] was returned (pull-to-refresh UX).
+  final AppFailure? refreshError;
 }
 
 /// Failed result carrying a user-mappable [AppFailure].

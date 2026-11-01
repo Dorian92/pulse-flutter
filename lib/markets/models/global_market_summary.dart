@@ -4,24 +4,28 @@ import 'package:equatable/equatable.dart';
 class GlobalMarketSummary extends Equatable {
   /// Creates global summary values.
   const GlobalMarketSummary({
-    required this.totalMarketCapEur,
     required this.marketCapChangePercent24h,
+    this.totalMarketCapEur,
   });
 
   /// Parses from JSON map.
   factory GlobalMarketSummary.fromJson(Map<String, dynamic> json) {
+    final cap = json['totalMarketCapEur'];
     return GlobalMarketSummary(
-      totalMarketCapEur: (json['totalMarketCapEur'] as num?)?.toDouble() ?? 0,
+      totalMarketCapEur: cap == null ? null : (cap as num).toDouble(),
       marketCapChangePercent24h:
           (json['marketCapChangePercent24h'] as num?)?.toDouble() ?? 0,
     );
   }
 
-  /// Total market cap in EUR.
-  final double totalMarketCapEur;
+  /// Total market cap in EUR when CoinGecko provides it; null otherwise.
+  final double? totalMarketCapEur;
 
   /// 24h global market cap change percentage.
   final double marketCapChangePercent24h;
+
+  /// Whether the summary card can show a market cap value.
+  bool get hasMarketCap => totalMarketCapEur != null;
 
   /// Serializes for cache.
   Map<String, dynamic> toJson() {

@@ -46,7 +46,7 @@ class MarketsRepositoryImpl implements MarketsRepository {
   Future<Result<MarketsSnapshot>> refreshMarkets() async {
     final online = await _connectivity.isOnline;
     if (!online) {
-      return _staleOrFailure();
+      return _cachedStaleSuccess(const NetworkFailure(offline: true));
     }
 
     final remote = await _remote.fetchMarkets();
@@ -55,24 +55,20 @@ class MarketsRepositoryImpl implements MarketsRepository {
         await _local.writeSnapshot(cacheKey: _cacheKey, snapshot: value);
         return Success(value);
       case Failure(:final error):
-        final stale = await _readStaleSnapshot();
-        if (stale != null) {
-          return Success(stale, isStale: true);
-        }
-        return Failure<MarketsSnapshot>(error);
+        return _cachedStaleSuccess(error);
     }
   }
 
-  Future<Result<MarketsSnapshot>> _staleOrFailure() async {
-    final stale = await _readStaleSnapshot();
-    if (stale != null) {
-      return Success(stale, isStale: true);
+  Future<Result<MarketsSnapshot>> _cachedStaleSuccess(AppFailure cause) async {
+    final cached = await _readCachedSnapshot();
+    if (cached != null) {
+      return Success(cached, isStale: true, refreshError: cause);
     }
-    return const Failure(NetworkFailure(offline: true));
+    return Failure<MarketsSnapshot>(cause);
   }
 
-  Future<MarketsSnapshot?> _readStaleSnapshot() async {
-    final json = await _local.readStaleJson(_cacheKey);
+  Future<MarketsSnapshot?> _readCachedSnapshot() async {
+    final json = await _local.readAnyJson(_cacheKey);
     if (json == null) {
       return null;
     }

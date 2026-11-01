@@ -28,6 +28,15 @@ class MarketsLocalDataSource {
     return _cache.readStale(key: cacheKey, schemaVersion: schemaVersion);
   }
 
+  /// Reads fresh JSON if valid, otherwise any stale envelope payload.
+  Future<Map<String, dynamic>?> readAnyJson(String cacheKey) async {
+    final fresh = await readFreshJson(cacheKey);
+    if (fresh != null) {
+      return fresh;
+    }
+    return readStaleJson(cacheKey);
+  }
+
   /// Persists [snapshot] under [cacheKey].
   Future<void> writeSnapshot({
     required String cacheKey,

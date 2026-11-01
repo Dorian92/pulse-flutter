@@ -50,7 +50,7 @@
   "errorNotFound": "Stavka nije pronađena.",
   "errorCache": "Greška lokalne memorije. Osvežite podatke.",
   "errorUnknown": "Došlo je do greške. Pokušajte ponovo.",
-  "marketsSearchHint": "Pretrazi koini",
+  "marketsSearchHint": "Pretraži koini",
   "marketsRetry": "Pokušaj ponovo",
   "marketsEmptyFilter": "Nema koina za ovaj filter.",
   "marketsNoSearchResults": "Nema rezultata pretrage."

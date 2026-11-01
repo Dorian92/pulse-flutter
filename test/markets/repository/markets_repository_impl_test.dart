@@ -158,4 +158,35 @@ void main() {
     expect(result, isA<Success<MarketsSnapshot>>());
     verify(() => remote.fetchMarkets()).called(1);
   });
+
+  test('refreshMarkets offline serves fresh cache as stale', () async {
+    final snapshot = _sampleSnapshot(clock.now());
+    await local.writeSnapshot(cacheKey: 'markets:eur', snapshot: snapshot);
+    when(() => connectivity.isOnline).thenAnswer((_) async => false);
+
+    final result = await repository.refreshMarkets();
+
+    expect(result, isA<Success<MarketsSnapshot>>());
+    final success = result as Success<MarketsSnapshot>;
+    expect(success.isStale, isTrue);
+    expect(success.refreshError, isA<NetworkFailure>());
+    verifyNever(() => remote.fetchMarkets());
+  });
+
+  test('refreshMarkets propagates remote failure on stale fallback', () async {
+    final snapshot = _sampleSnapshot(clock.now());
+    await local.writeSnapshot(cacheKey: 'markets:eur', snapshot: snapshot);
+    clock.advance(const Duration(minutes: 20));
+    when(() => connectivity.isOnline).thenAnswer((_) async => true);
+    when(() => remote.fetchMarkets()).thenAnswer(
+      (_) async => const Failure(RateLimitFailure(retryAfterSeconds: 30)),
+    );
+
+    final result = await repository.refreshMarkets();
+
+    expect(result, isA<Success<MarketsSnapshot>>());
+    final success = result as Success<MarketsSnapshot>;
+    expect(success.isStale, isTrue);
+    expect(success.refreshError, isA<RateLimitFailure>());
+  });
 }

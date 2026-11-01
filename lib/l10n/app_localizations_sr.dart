@@ -170,7 +170,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get errorUnknown => 'Došlo je do greške. Pokušajte ponovo.';
 
   @override
-  String get marketsSearchHint => 'Pretrazi koini';
+  String get marketsSearchHint => 'Pretraži koini';
 
   @override
   String get marketsRetry => 'Pokušaj ponovo';
@@ -348,7 +348,7 @@ class AppLocalizationsSrLatn extends AppLocalizationsSr {
   String get errorUnknown => 'Došlo je do greške. Pokušajte ponovo.';
 
   @override
-  String get marketsSearchHint => 'Pretrazi koini';
+  String get marketsSearchHint => 'Pretraži koini';
 
   @override
   String get marketsRetry => 'Pokušaj ponovo';

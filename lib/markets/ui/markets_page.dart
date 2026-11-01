@@ -185,14 +185,16 @@ class _MarketsViewState extends State<_MarketsView> {
                     },
                   ),
                   SizedBox(height: tokens.spacingMd),
-                  MarketSummaryCard(
-                    marketCapText: PulseFormatters.formatCompactCurrency(
-                      snapshot.global.totalMarketCapEur,
-                      locale,
+                  if (snapshot.global.hasMarketCap)
+                    MarketSummaryCard(
+                      marketCapText: PulseFormatters.formatCompactCurrency(
+                        snapshot.global.totalMarketCapEur!,
+                        locale,
+                      ),
+                      changePercent: snapshot.global.marketCapChangePercent24h,
                     ),
-                    changePercent: snapshot.global.marketCapChangePercent24h,
-                  ),
-                  SizedBox(height: tokens.spacingMd),
+                  if (snapshot.global.hasMarketCap)
+                    SizedBox(height: tokens.spacingMd),
                 ],
               ),
             ),
@@ -226,6 +228,7 @@ class _MarketsViewState extends State<_MarketsView> {
                 itemBuilder: (context, index) {
                   final coin = state.visibleCoins[index];
                   return CoinListTile(
+                    compactSparkline: true,
                     name: coin.name,
                     symbol: coin.symbol,
                     priceText: PulseFormatters.formatEurPrice(
@@ -306,7 +309,7 @@ class _MarketsHeader extends StatelessWidget {
             ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
         ),
-        const LiveIndicator(),
+        const LiveIndicator(active: false),
         SizedBox(width: tokens.spacingSm),
         IconButton(onPressed: onToggleSearch, icon: const Icon(Icons.search)),
       ],

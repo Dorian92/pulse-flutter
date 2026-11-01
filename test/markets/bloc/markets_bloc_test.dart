@@ -134,4 +134,64 @@ void main() {
           .having((s) => s.visibleCoins.first.id, 'id', 'loser'),
     ],
   );
+
+  blocTest<MarketsBloc, MarketsState>(
+    'refresh stale success exposes repository refreshError',
+    build: () {
+      when(() => repository.refreshMarkets()).thenAnswer(
+        (_) async => Success(
+          _snapshot(),
+          isStale: true,
+          refreshError: const RateLimitFailure(retryAfterSeconds: 12),
+        ),
+      );
+      return MarketsBloc(repository: repository);
+    },
+    seed: () => MarketsState.loaded(
+      snapshot: _snapshot(),
+      visibleCoins: _snapshot().coins,
+    ),
+    act: (bloc) => bloc.add(const MarketsRefreshRequested()),
+    expect: () => [
+      isA<MarketsState>().having(
+        (s) => s.status,
+        'status',
+        MarketsStatus.loading,
+      ),
+      isA<MarketsState>()
+          .having((s) => s.isStale, 'stale', isTrue)
+          .having(
+            (s) => s.refreshFailure,
+            'refreshFailure',
+            isA<RateLimitFailure>(),
+          ),
+    ],
+  );
+
+  blocTest<MarketsBloc, MarketsState>(
+    'refresh failure with existing data sets refreshFailure',
+    build: () {
+      when(
+        () => repository.refreshMarkets(),
+      ).thenAnswer((_) async => const Failure(ServerFailure(statusCode: 503)));
+      return MarketsBloc(repository: repository);
+    },
+    seed: () => MarketsState.loaded(
+      snapshot: _snapshot(),
+      visibleCoins: _snapshot().coins,
+    ),
+    act: (bloc) => bloc.add(const MarketsRefreshRequested()),
+    expect: () => [
+      isA<MarketsState>().having(
+        (s) => s.status,
+        'status',
+        MarketsStatus.loading,
+      ),
+      isA<MarketsState>().having(
+        (s) => s.refreshFailure,
+        'refreshFailure',
+        isA<ServerFailure>(),
+      ),
+    ],
+  );
 }

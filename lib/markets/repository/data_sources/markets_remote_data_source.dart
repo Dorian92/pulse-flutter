@@ -31,16 +31,19 @@ class MarketsRemoteDataSource {
 
   /// Loads markets snapshot from network.
   Future<Result<MarketsSnapshot>> fetchMarkets() async {
-    final marketsResult = await _fetchMarketsPage();
+    final results = await Future.wait([_fetchMarketsPage(), _fetchGlobal()]);
+
+    final marketsResult = results[0] as Result<List<MarketCoin>>;
+    final globalResult = results[1] as Result<GlobalMarketSummary>;
+
     if (marketsResult case Failure(:final error)) {
       return Failure(error);
     }
-    final markets = (marketsResult as Success<List<MarketCoin>>).value;
-
-    final globalResult = await _fetchGlobal();
     if (globalResult case Failure(:final error)) {
       return Failure(error);
     }
+
+    final markets = (marketsResult as Success<List<MarketCoin>>).value;
     final global = (globalResult as Success<GlobalMarketSummary>).value;
 
     return Success(
@@ -68,7 +71,12 @@ class MarketsRemoteDataSource {
           throw const FormatException('Expected list for /coins/markets');
         }
         return json
-            .map((raw) => _parseMarketCoin(raw as Map<String, dynamic>))
+            .map(
+              (raw) => parseMarketCoinFromApi(
+                raw as Map<String, dynamic>,
+                symbolMapper: _symbolMapper,
+              ),
+            )
             .toList(growable: false);
       },
     );
@@ -81,42 +89,50 @@ class MarketsRemoteDataSource {
         if (json is! Map<String, dynamic>) {
           throw const FormatException('Expected map for /global');
         }
-        final data = json['data'] as Map<String, dynamic>? ?? json;
-        final caps = data['total_market_cap'] as Map<String, dynamic>? ?? {};
-        final eurCap = (caps[vsCurrency] as num?)?.toDouble();
-        final usdCap = (caps['usd'] as num?)?.toDouble();
-        final totalEur = eurCap ?? usdCap ?? 0;
-        final change =
-            (data['market_cap_change_percentage_24h_usd'] as num?)
-                ?.toDouble() ??
-            0;
-        return GlobalMarketSummary(
-          totalMarketCapEur: totalEur,
-          marketCapChangePercent24h: change,
-        );
+        return parseGlobalMarketSummaryFromApi(json, vsCurrency: vsCurrency);
       },
     );
   }
+}
 
-  MarketCoin _parseMarketCoin(Map<String, dynamic> json) {
-    final id = json['id'] as String? ?? '';
-    final sparklineMap = json['sparkline_in_7d'] as Map<String, dynamic>?;
-    final prices = sparklineMap?['price'] as List<dynamic>?;
-    final sparkline =
-        prices?.map((e) => (e as num).toDouble()).toList(growable: false) ??
-        const <double>[];
+/// Parses a CoinGecko `/coins/markets` row into [MarketCoin].
+MarketCoin parseMarketCoinFromApi(
+  Map<String, dynamic> json, {
+  required SymbolMapper symbolMapper,
+}) {
+  final id = json['id'] as String? ?? '';
+  final sparklineMap = json['sparkline_in_7d'] as Map<String, dynamic>?;
+  final prices = sparklineMap?['price'] as List<dynamic>?;
+  final sparkline =
+      prices?.map((e) => (e as num).toDouble()).toList(growable: false) ??
+      const <double>[];
 
-    return MarketCoin(
-      id: id,
-      symbol: json['symbol'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      imageUrl: json['image'] as String? ?? '',
-      currentPriceEur: (json['current_price'] as num?)?.toDouble() ?? 0,
-      priceChangePercent24h:
-          (json['price_change_percentage_24h'] as num?)?.toDouble() ?? 0,
-      marketCapRank: json['market_cap_rank'] as int? ?? 0,
-      sparkline7d: sparkline,
-      binanceSymbol: _symbolMapper.binanceUsdtSymbolFor(coinGeckoId: id),
-    );
-  }
+  return MarketCoin(
+    id: id,
+    symbol: json['symbol'] as String? ?? '',
+    name: json['name'] as String? ?? '',
+    imageUrl: json['image'] as String? ?? '',
+    currentPriceEur: (json['current_price'] as num?)?.toDouble() ?? 0,
+    priceChangePercent24h:
+        (json['price_change_percentage_24h'] as num?)?.toDouble() ?? 0,
+    marketCapRank: json['market_cap_rank'] as int? ?? 0,
+    sparkline7d: sparkline,
+    binanceSymbol: symbolMapper.binanceUsdtSymbolFor(coinGeckoId: id),
+  );
+}
+
+/// Parses CoinGecko `/global` payload into [GlobalMarketSummary].
+GlobalMarketSummary parseGlobalMarketSummaryFromApi(
+  Map<String, dynamic> json, {
+  required String vsCurrency,
+}) {
+  final data = json['data'] as Map<String, dynamic>? ?? json;
+  final caps = data['total_market_cap'] as Map<String, dynamic>? ?? {};
+  final eurCap = (caps[vsCurrency] as num?)?.toDouble();
+  final change =
+      (data['market_cap_change_percentage_24h_usd'] as num?)?.toDouble() ?? 0;
+  return GlobalMarketSummary(
+    totalMarketCapEur: eurCap,
+    marketCapChangePercent24h: change,
+  );
 }
