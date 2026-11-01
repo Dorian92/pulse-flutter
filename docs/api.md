@@ -157,10 +157,19 @@ GET /coins/list
 
 Returns `[{ "id", "symbol", "name" }, ...]`. Cache long-lived locally.
 
+#### Global market data (markets summary card)
+
+```http
+GET /global
+Header: x-cg-demo-api-key: ***
+```
+
+Returns `data.total_market_cap` (map including `eur`) and `data.market_cap_change_percentage_24h_usd` for the summary change pill. Official: [Crypto Global](https://docs.coingecko.com/reference/crypto-global).
+
 #### Markets (top coins + sparkline)
 
 ```http
-GET /coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h
+GET /coins/markets?vs_currency=eur&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h
 Header: x-cg-demo-api-key: ***
 ```
 
