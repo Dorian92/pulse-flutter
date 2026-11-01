@@ -58,7 +58,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(CoinDetailPage), findsOneWidget);
-      expect(find.textContaining('bitcoin'), findsOneWidget);
+      expect(find.text('Bitcoin'), findsWidgets);
     });
   });
 }

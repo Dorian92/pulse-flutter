@@ -422,6 +422,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No coins match your search.'**
   String get marketsNoSearchResults;
+
+  /// No description provided for @coinDetailAboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get coinDetailAboutTitle;
+
+  /// No description provided for @coinDetailChartError.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart could not be loaded.'**
+  String get coinDetailChartError;
+
+  /// No description provided for @coinDetailAddWatchlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to watchlist'**
+  String get coinDetailAddWatchlist;
+
+  /// No description provided for @coinDetailRemoveWatchlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from watchlist'**
+  String get coinDetailRemoveWatchlist;
+
+  /// No description provided for @statUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get statUnknown;
+
+  /// No description provided for @coinDetailChartEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough chart data for this range.'**
+  String get coinDetailChartEmpty;
+
+  /// No description provided for @coinDetailHomepageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get coinDetailHomepageLabel;
+
+  /// No description provided for @coinDetailHomepageCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get coinDetailHomepageCopy;
+
+  /// No description provided for @coinDetailHomepageCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get coinDetailHomepageCopied;
 }
 
 class _AppLocalizationsDelegate

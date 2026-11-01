@@ -182,4 +182,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get marketsNoSearchResults => 'No coins match your search.';
+
+  @override
+  String get coinDetailAboutTitle => 'About';
+
+  @override
+  String get coinDetailChartError => 'Chart could not be loaded.';
+
+  @override
+  String get coinDetailAddWatchlist => 'Add to watchlist';
+
+  @override
+  String get coinDetailRemoveWatchlist => 'Remove from watchlist';
+
+  @override
+  String get statUnknown => '—';
+
+  @override
+  String get coinDetailChartEmpty => 'Not enough chart data for this range.';
+
+  @override
+  String get coinDetailHomepageLabel => 'Website';
+
+  @override
+  String get coinDetailHomepageCopy => 'Copy link';
+
+  @override
+  String get coinDetailHomepageCopied => 'Link copied';
 }

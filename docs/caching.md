@@ -7,7 +7,7 @@ Pulse treats cache as a **first-class product feature**: fast startup, graceful 
 | Data | Pattern | TTL | Storage key | Invalidation |
 |------|---------|-----|-------------|--------------|
 | Markets list (top ~100) | Cache-first | **10 min** | `markets:{vsCurrency}` | Pull-to-refresh bypasses TTL |
-| Coin detail metadata | Cache-first | **24 h** | `coin:{id}:{locale}` | Background refresh on open |
+| Coin detail metadata | Cache-first | **24 h** | `coin:{id}:meta:eur` | Background refresh on open |
 | Coin description / links | Cache-first | **24 h** | same blob as detail | Same |
 | Chart series per range | Cache-first | see below | `chart:{id}:{range}:{vsCurrency}` | Range switch uses own key |
 | Last known prices | Persist always | n/a (timestamped) | `prices:snapshot` | Updated on REST refresh + WS flush |
@@ -37,6 +37,7 @@ class CacheEnvelope {
 | 1D | Binance klines (`1m`/`5m`) or CoinGecko `market_chart?days=1` | **5 min** |
 | 1W | Binance `1h` klines or CG `days=7` | **15 min** |
 | 1M | Binance `4h`/`1d` or CG `days=30` | **1 h** |
+| 3M | Binance `1d` or CG `days=90` | **6 h** |
 | 1Y | Binance `1d`/`1w` or CG `days=365` | **24 h** |
 
 **Implementation note:** Prefer **Binance klines** for chart shape alignment with live USDT price; use CoinGecko `market_chart` as fallback when no Binance pair exists. Document per-coin `SymbolMapper` failures in UI.

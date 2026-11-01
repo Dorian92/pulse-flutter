@@ -1,6 +1,11 @@
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:pulse/coin_detail/repository/coin_detail_repository.dart';
+import 'package:pulse/coin_detail/repository/coin_detail_repository_impl.dart';
+import 'package:pulse/coin_detail/repository/data_sources/coin_detail_local_data_source.dart';
+import 'package:pulse/coin_detail/repository/data_sources/coin_detail_remote_data_source.dart';
+import 'package:pulse/coin_detail/watchlist/watchlist_toggle.dart';
 import 'package:pulse/core/config/app_config.dart';
 import 'package:pulse/core/connectivity/connectivity_plus_service.dart';
 import 'package:pulse/core/connectivity/connectivity_service.dart';
@@ -37,6 +42,8 @@ Future<void> configureDependencies({
   MarketsRepository? marketsRepository,
   PriceStreamService? priceStreamService,
   RealtimeSubscriptionCoordinator? subscriptionCoordinator,
+  CoinDetailRepository? coinDetailRepository,
+  WatchlistToggle? watchlistToggle,
 }) async {
   if (!sl.isRegistered<AppConfig>()) {
     sl.registerSingleton<AppConfig>(appConfig ?? const AppConfig());
@@ -82,6 +89,10 @@ Future<void> configureDependencies({
     subscriptionCoordinator: subscriptionCoordinator,
   );
   _registerMarkets(marketsRepository: marketsRepository);
+  _registerCoinDetail(
+    coinDetailRepository: coinDetailRepository,
+    watchlistToggle: watchlistToggle,
+  );
 }
 
 void _registerRealtime({
@@ -136,6 +147,41 @@ void _registerMarkets({MarketsRepository? marketsRepository}) {
     () => MarketsRepositoryImpl(
       remote: sl<MarketsRemoteDataSource>(),
       local: sl<MarketsLocalDataSource>(),
+      connectivity: sl<ConnectivityService>(),
+    ),
+  );
+}
+
+void _registerCoinDetail({
+  CoinDetailRepository? coinDetailRepository,
+  WatchlistToggle? watchlistToggle,
+}) {
+  if (!sl.isRegistered<WatchlistToggle>()) {
+    sl.registerLazySingleton<WatchlistToggle>(
+      () => watchlistToggle ?? InMemoryWatchlistToggle(),
+    );
+  }
+  if (sl.isRegistered<CoinDetailRepository>()) {
+    return;
+  }
+  sl.registerLazySingleton<CoinDetailRemoteDataSource>(
+    () => CoinDetailRemoteDataSource(
+      apiClient: sl<ApiClient>(),
+      symbolMapper: sl<SymbolMapper>(),
+      clock: sl<Clock>(),
+    ),
+  );
+  sl.registerLazySingleton<CoinDetailLocalDataSource>(
+    () => CoinDetailLocalDataSource(cacheStore: sl<CacheStore>()),
+  );
+  if (coinDetailRepository != null) {
+    sl.registerLazySingleton<CoinDetailRepository>(() => coinDetailRepository);
+    return;
+  }
+  sl.registerLazySingleton<CoinDetailRepository>(
+    () => CoinDetailRepositoryImpl(
+      remote: sl<CoinDetailRemoteDataSource>(),
+      local: sl<CoinDetailLocalDataSource>(),
       connectivity: sl<ConnectivityService>(),
     ),
   );

@@ -15,9 +15,14 @@ class FakePriceStreamService implements PriceStreamService {
   Set<String> lastDesiredSymbols = {};
   AppLifecycleState? lastLifecycle;
 
+  RealtimeStatus _currentStatus = const RealtimeStatus.offline();
+
   FakePriceStreamService() {
     // Status starts offline until tests call [emitStatus].
   }
+
+  @override
+  RealtimeStatus get currentStatus => _currentStatus;
 
   @override
   Stream<PriceTick> get ticks => _ticksController.stream;
@@ -42,6 +47,7 @@ class FakePriceStreamService implements PriceStreamService {
 
   /// Pushes a status update.
   void emitStatus(RealtimeStatus status) {
+    _currentStatus = status;
     _statusController.add(status);
   }
 
