@@ -17,7 +17,7 @@ Pulse is a **Flutter** crypto tracker (Binance live + CoinGecko metadata). Docum
 
 ## Code quality
 
-- Run **`dart format .`** before commit.
+- Run **`dart format lib test integration_test tool`** before commit (matches CI).
 - **`flutter analyze`** must pass with project strict options (step 1).
 - **No hard-coded user strings** — use ARB (`AppLocalizations`).
 - **No hard-coded colors** — use `Theme.of(context)` and `core/theme/app_colors.dart` semantic tokens.
@@ -42,6 +42,7 @@ Every PR must include tests matching its roadmap step **acceptance criteria**. M
 - **Bloc/Cubit** — `bloc_test` for happy path + one failure path.
 - **Repository** — mock data sources or HTTP client; verify cache-first when applicable.
 - **PriceStreamService** — use `FakePriceStreamService`, not live Binance, in CI.
+- **Happy path** — `test/pulse_happy_path_test.dart` (CI, `AppRoutes` + test blocs); same flow on device via `integration_test/app_test.dart` with `PulseApp` + `initPulseTestDependencies()` (local only, not CI).
 
 Do not merge with failing CI.
 

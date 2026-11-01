@@ -19,6 +19,8 @@ import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
 import 'package:pulse/settings/repository/settings_repository.dart';
 
+import '../core/realtime/fake_price_stream_service.dart';
+
 class MockMarketsRepository extends Mock implements MarketsRepository {}
 
 class MockCoinDetailRepository extends Mock implements CoinDetailRepository {}
@@ -125,8 +127,8 @@ Future<void> initPulseTestDependencies({
   await configureDependencies(
     marketsRepository: marketsRepository,
     coinDetailRepository: coinDetailRepository,
-    priceStreamService: priceStreamService,
-    connectivityService: connectivityService,
+    priceStreamService: priceStreamService ?? FakePriceStreamService(),
+    connectivityService: connectivityService ?? FakeConnectivityService(),
   );
   await sl<SettingsRepository>().load();
 }

@@ -36,7 +36,7 @@ More frames: `docs/screenshots/` (Serbian locale, design gallery scroll, etc.).
 - **Storage:** Hive (`CacheStore`, preferences, watchlist)
 - **Charts:** `fl_chart`
 - **L10n:** ARB (`en`, `sr_Latn`)
-- **Tests:** `flutter_test`, `bloc_test`, `mocktail`; end-to-end flow in `test/pulse_happy_path_test.dart`
+- **Tests:** `flutter_test`, `bloc_test`, `mocktail`, `integration_test` (device-only); CI happy path in **`test/pulse_happy_path_test.dart`**
 
 ## Architecture (overview)
 
@@ -74,7 +74,16 @@ Binance read-only market endpoints do not require a key.
 
 ## Test & coverage
 
-Default CI and local runs use **fakes**—no live Binance or CoinGecko. The markets → coin detail → watchlist happy path lives in `test/app_router_test.dart`.
+CI and default local runs use **fakes**—no live Binance or CoinGecko.
+
+| Suite | File | Where it runs |
+|-------|------|----------------|
+| **Widget happy path** | `test/pulse_happy_path_test.dart` | CI + local (`flutter test`) |
+| **Device integration** | `integration_test/app_test.dart` | Local emulator/device only |
+
+The happy path covers **Markets → coin detail → watchlist star → watchlist tab**. CI runs it in **`test/pulse_happy_path_test.dart`** (real **`AppRoutes`** / shell navigation with injected test blocs). **`integration_test/app_test.dart`** runs the same flow on a device with **`PulseApp`** and **`initPulseTestDependencies()`** (stub repos + fakes).
+
+**Line coverage (lib/, from `coverage/lcov.info`):** ~**74.9%** before step 8 → ~**76.3%** after (2952→3008 / 3942 lines hit).
 
 ```bash
 dart format lib test integration_test tool
@@ -83,9 +92,17 @@ flutter test --coverage
 bash tool/check_generated.sh
 ```
 
-Optional: regenerate fixture screenshots (`bash tool/screenshots.sh`) or demo video (`bash tool/build_demo.sh`).
+Optional:
 
-Coverage is uploaded from CI as `coverage/lcov.info`; there is no failing coverage threshold.
+```bash
+# Same flow on a connected device (not run in CI)
+flutter test integration_test/app_test.dart -d <deviceId>
+
+bash tool/screenshots.sh    # fixture PNGs
+bash tool/build_demo.sh     # docs/demo/*.gif|mp4
+```
+
+Coverage is uploaded from CI as `coverage/lcov.info` with an informational summary; there is no failing threshold.
 
 ## Project structure
 
@@ -97,7 +114,8 @@ lib/
   watchlist/     # persistence + UI
   settings/      # theme, locale, currency
   shell/         # bottom navigation
-test/            # unit, bloc, widget, and app-router flow tests
+test/            # unit, bloc, widget; pulse_happy_path_test.dart (CI flow)
+integration_test/ # app_test.dart — device runs only (see README there)
 tool/            # screenshot harness, demo stitch, codegen checks
 docs/            # architecture, roadmap, screenshots, demo
 ```
@@ -116,7 +134,7 @@ docs/            # architecture, roadmap, screenshots, demo
 
 ## Roadmap & limitations
 
-Steps **1–8** on `main` cover setup through watchlist/settings, tests polish, README, and demo media. **Out of scope:** React Native twin (separate repo), accounts, portfolios, push alerts.
+Roadmap **steps 1–8** deliver setup through watchlist/settings, test polish, README, architecture docs, and demo media (step 8 lands via PR #14). **Out of scope:** React Native twin (separate repo), accounts, portfolios, push alerts.
 
 Known limits: Demo API rate limits; WebSocket closes ~30s in background; chart/kline source falls back per [architecture](docs/architecture.md) when no USDT pair exists.
 
@@ -127,7 +145,7 @@ Known limits: Demo API rate limits; WebSocket closes ~30s in background; chart/k
 
 ## CI
 
-GitHub Actions on PRs and `main`: format, analyze, `flutter test --coverage`, integration tests, generated-code check, debug APK. Coverage artifact + informational summary. iOS build on push to `main` (macOS, no codesign).
+GitHub Actions on PRs and `main`: **`dart format`** (`lib`, `test`, `integration_test`, `tool`), **`flutter analyze`**, **`flutter test --coverage`**, generated-code check, debug APK. Coverage artifact + non-blocking `lcov` summary. **No device integration job.** iOS build on push to `main` (macOS, no codesign).
 
 ## License
 

@@ -25,9 +25,12 @@ lib/
 │   ├── error/
 │   │   ├── app_failure.dart           # sealed failure types
 │   │   └── result.dart                # sealed Result<T>
+│   ├── connectivity/
+│   │   ├── connectivity_service.dart
+│   │   └── connectivity_plus_service.dart
 │   ├── network/
 │   │   ├── api_client.dart            # http wrapper, timeouts, decode
-│   │   └── network_exception.dart
+│   │   └── api_exception.dart
 │   ├── realtime/
 │   │   ├── price_stream_service.dart  # abstract + Binance impl (see realtime.md)
 │   │   ├── price_tick.dart
@@ -45,9 +48,9 @@ lib/
 │   │   ├── app_theme.dart
 │   │   └── app_colors.dart            # semantic tokens only
 │   └── widgets/
-│       ├── async_state_view.dart      # loading / error / empty
-│       ├── price_text.dart
-│       └── stale_badge.dart           # "Updated X min ago"
+│       ├── coin_list_tile.dart
+│       ├── offline_banner.dart
+│       └── shimmer_skeleton.dart
 ├── shell/
 │   └── ui/
 │       └── main_shell.dart            # bottom nav / navigation rail
@@ -66,44 +69,52 @@ lib/
 │   │   ├── markets_event.dart
 │   │   └── markets_state.dart
 │   └── ui/
-│       ├── markets_page.dart
-│       └── widgets/
-│           └── market_list_tile.dart
+│       └── markets_page.dart
 ├── coin_detail/
 │   ├── models/
 │   │   ├── coin_detail.dart
-│   │   ├── chart_range.dart
-│   │   └── candle.dart
+│   │   ├── chart_point.dart
+│   │   ├── chart_range_config.dart
+│   │   └── price_chart_series.dart
 │   ├── repository/
 │   │   ├── coin_detail_repository.dart
 │   │   ├── coin_detail_repository_impl.dart
 │   │   └── data_sources/
 │   │       ├── coin_detail_remote_data_source.dart
-│   │       └── chart_local_data_source.dart
+│   │       └── coin_detail_local_data_source.dart
 │   ├── bloc/
 │   │   ├── coin_detail_bloc.dart
-│   │   └── ...
+│   │   ├── coin_detail_event.dart
+│   │   └── coin_detail_state.dart
 │   └── ui/
 │       ├── coin_detail_page.dart
 │       └── widgets/
+│           ├── coin_detail_header.dart
 │           └── price_chart.dart
 ├── watchlist/
 │   ├── models/
-│   │   └── watchlist_entry.dart
+│   │   └── watchlist_snapshot.dart
 │   ├── repository/
 │   │   ├── watchlist_repository.dart
-│   │   └── watchlist_repository_impl.dart
+│   │   ├── watchlist_repository_impl.dart
+│   │   └── data_sources/
+│   │       ├── watchlist_local_data_source.dart
+│   │       └── watchlist_markets_data_source.dart
 │   ├── bloc/
-│   │   └── watchlist_cubit.dart
+│   │   ├── watchlist_bloc.dart
+│   │   ├── watchlist_event.dart
+│   │   └── watchlist_state.dart
 │   └── ui/
 │       └── watchlist_page.dart
 └── settings/
     ├── models/
-    │   └── user_preferences.dart
+    │   ├── user_preferences.dart
+    │   └── display_currency.dart
     ├── repository/
     │   └── settings_repository.dart
     ├── bloc/
-    │   └── settings_cubit.dart
+    │   ├── settings_cubit.dart
+    │   └── settings_state.dart
     └── ui/
         └── settings_page.dart
 
@@ -279,7 +290,8 @@ Pulse keeps network out of the default test path. Production code uses construct
 | Repository | `test/**/repository/**` | Mock remote + real or in-memory Hive cache |
 | Bloc | `test/**/bloc/**` | `bloc_test` happy path + failure |
 | Widget | `test/**/ui/**` | Mock blocs or `initPulseTestDependencies()` |
-| Integration-style | `test/pulse_happy_path_test.dart` | Router flow with mocked blocs (see `integration_test/README.md`) |
+| Integration-style (CI) | `test/pulse_happy_path_test.dart` | `PulseApp` + test DI; shared flow in `test/helpers/pulse_happy_path_flow.dart` |
+| Device integration (local) | `integration_test/app_test.dart` | Same flow on emulator/device; **not** in CI |
 | Visual fixtures | `tool/screenshot_capture_test.dart` | Tagged `screenshots`; writes PNGs for README / demo |
 
 **Running:** `flutter test --coverage` (CI). Live CoinGecko/Binance are optional manual checks with `--dart-define=COINGECKO_DEMO_API_KEY=...` — not required for CI.
@@ -315,5 +327,5 @@ All concrete types are registered in `lib/core/di/injection.dart` via `get_it`. 
 | `mocktail` | Mockito-free mocks for repositories and HTTP |
 | `bloc_test` | Declarative Bloc/Cubit behaviour tests |
 | `flutter_test` | Widget and integration tests |
-| `connectivity_plus` (optional) | Explicit offline detection for stale UX |
+| `connectivity_plus` | Offline detection for cache-first refresh (`ConnectivityPlusService`) |
 | `package_info_plus` (optional) | About screen / debug overlay only |
