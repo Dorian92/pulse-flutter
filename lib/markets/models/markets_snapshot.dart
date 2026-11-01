@@ -43,6 +43,19 @@ class MarketsSnapshot extends Equatable {
     };
   }
 
+  /// Returns a copy with updated coin list or timestamp.
+  MarketsSnapshot copyWith({
+    List<MarketCoin>? coins,
+    GlobalMarketSummary? global,
+    DateTime? fetchedAt,
+  }) {
+    return MarketsSnapshot(
+      coins: coins ?? this.coins,
+      global: global ?? this.global,
+      fetchedAt: fetchedAt ?? this.fetchedAt,
+    );
+  }
+
   @override
   List<Object?> get props => [coins, global, fetchedAt];
 }

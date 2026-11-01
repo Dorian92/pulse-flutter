@@ -257,7 +257,7 @@ flowchart LR
     Merge --> UI[Blocs / UI]
 ```
 
-1. **Markets screen:** CoinGecko `/coins/markets` defines ordering and metadata; Binance symbols attached via mapper; live updates from WS; REST 24hr for initial/sync.
+1. **Markets screen:** CoinGecko `/coins/markets` defines ordering and metadata; Binance symbols attached via `SymbolMapper` (+ cached `exchangeInfo`); live updates from WS (`@ticker`, USDT → EUR via `EURUSDT` stream); REST list for initial/sync.
 2. **Detail:** CoinGecko `/coins/{id}` + Binance klines for chart; WS for live price.
 3. **Display currency EUR:** CoinGecko supports `vs_currency=eur`; Binance pairs remain USDT — convert for display or prefer CG `current_price` for static fields and USDT live from Binance (document in UI).
 

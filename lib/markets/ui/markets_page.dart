@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pulse/core/di/injection.dart';
 import 'package:pulse/core/formatting/pulse_formatters.dart';
+import 'package:pulse/core/realtime/price_stream_service.dart';
+import 'package:pulse/core/realtime/realtime_subscription_coordinator.dart';
+import 'package:pulse/core/realtime/symbol_mapper.dart';
 import 'package:pulse/core/router/app_router.dart';
 import 'package:pulse/core/theme/app_colors.dart';
 import 'package:pulse/core/widgets/coin_list_tile.dart';
@@ -13,8 +16,9 @@ import 'package:pulse/core/widgets/offline_banner.dart';
 import 'package:pulse/core/widgets/shimmer_skeleton.dart';
 import 'package:pulse/l10n/app_localizations.dart';
 import 'package:pulse/markets/bloc/markets_bloc.dart';
+import 'package:pulse/markets/repository/markets_repository.dart';
 
-/// Top coins list (REST + cache); live prices arrive in step 5.
+/// Top coins list with REST cache and live Binance price merges.
 class MarketsPage extends StatelessWidget {
   /// Creates the markets screen.
   ///
@@ -28,7 +32,14 @@ class MarketsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) {
-        final marketsBloc = bloc ?? MarketsBloc(repository: sl());
+        final marketsBloc =
+            bloc ??
+            MarketsBloc(
+              repository: sl<MarketsRepository>(),
+              subscriptionCoordinator: sl<RealtimeSubscriptionCoordinator>(),
+              priceStreamService: sl<PriceStreamService>(),
+              symbolMapper: sl<SymbolMapper>(),
+            );
         if (bloc == null) {
           marketsBloc.add(const MarketsRequested());
         }
@@ -90,6 +101,7 @@ class _MarketsViewState extends State<_MarketsView> {
                   child: _MarketsHeader(
                     searchOpen: _searchOpen,
                     searchController: _searchController,
+                    liveActive: state.realtimeStatus.isLiveIndicatorActive,
                     onToggleSearch: () {
                       setState(() => _searchOpen = !_searchOpen);
                     },
@@ -238,6 +250,9 @@ class _MarketsViewState extends State<_MarketsView> {
                     changePercent: coin.priceChangePercent24h,
                     sparklineValues: coin.sparkline7d,
                     showNoLiveFeedBadge: !coin.hasLiveFeed,
+                    liveFlashToken: coin.id == state.liveFlashCoinId
+                        ? state.liveFlashGeneration
+                        : null,
                     icon: coin.imageUrl.isEmpty
                         ? null
                         : CircleAvatar(
@@ -266,12 +281,14 @@ class _MarketsHeader extends StatelessWidget {
   const _MarketsHeader({
     required this.searchOpen,
     required this.searchController,
+    required this.liveActive,
     required this.onToggleSearch,
     required this.onSearchChanged,
   });
 
   final bool searchOpen;
   final TextEditingController searchController;
+  final bool liveActive;
   final VoidCallback onToggleSearch;
   final ValueChanged<String> onSearchChanged;
 
@@ -309,7 +326,7 @@ class _MarketsHeader extends StatelessWidget {
             ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
         ),
-        const LiveIndicator(active: false),
+        LiveIndicator(active: liveActive),
         SizedBox(width: tokens.spacingSm),
         IconButton(onPressed: onToggleSearch, icon: const Icon(Icons.search)),
       ],

@@ -117,7 +117,10 @@ MarketCoin parseMarketCoinFromApi(
         (json['price_change_percentage_24h'] as num?)?.toDouble() ?? 0,
     marketCapRank: json['market_cap_rank'] as int? ?? 0,
     sparkline7d: sparkline,
-    binanceSymbol: symbolMapper.binanceUsdtSymbolFor(coinGeckoId: id),
+    binanceSymbol: symbolMapper.binanceUsdtSymbolFor(
+      coinGeckoId: id,
+      coinGeckoSymbol: json['symbol'] as String?,
+    ),
   );
 }
 

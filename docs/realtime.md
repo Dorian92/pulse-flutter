@@ -136,7 +136,7 @@ Document the chosen flag in `AppConfig` so tests can disable lifecycle teardown.
 sealed class RealtimeStatus {
   const RealtimeStatus();
 }
-// idle | connecting | live | degraded | disconnected
+// offline | connecting | live | reconnecting | degraded
 ```
 
 - **UI:** optional subtle indicator on markets/watchlist when not `live`; do not block interaction.
@@ -144,11 +144,11 @@ sealed class RealtimeStatus {
 
 ## Integration with Blocs
 
-**Symbol mapping (step 3 stub):** `SymbolMapper` resolves only a small static CoinGecko id → Binance `*USDT` map (plus test overrides). Unknown ids return `null` so the UI shows the **“no live feed”** badge; step 4+ will build the full map from Binance `exchangeInfo`.
+**Symbol mapping:** Static `_knownIds` plus **`SymbolMapperLoader`** (cached `GET /api/v3/exchangeInfo`, weight 20) maps CoinGecko **symbol** → `*USDT` when trading. Unknown ids return `null` → **“no live feed”** badge.
 
 **MarketsBloc**
 
-- On `MarketsLoaded`, call `setDesiredSymbols(visibleBinanceSymbols)` (viewport-aware: only IDs rendered + buffer).
+- Registers symbols via **`RealtimeSubscriptionCoordinator`** using the **top-50** policy on filtered `visibleCoins` (see [plans/live-prices.md](plans/live-prices.md)).
 - On `MarketsBloc` close → remove its symbols from registry (coordinator reference-counts).
 
 **WatchlistCubit**
@@ -185,6 +185,12 @@ Verified from official docs (Oct 2025; re-check before implementation):
 - [x] Connection valid **24 hours**
 - [x] Server **ping** every **20s**; client **pong** required
 - [x] **300** connection attempts per **5 minutes** per IP — avoid reconnect storms
+
+### Open (implemented in step 5)
+
+Pulse uses **`wss://stream.binance.com:9443/ws`** with dynamic **`SUBSCRIBE` / `UNSUBSCRIBE`** JSON (not the combined `/stream?streams=` URL at connect). Control messages are rate-limited to **5/s**; subscription acks reconcile the active set.
+
+**Stale detection:** the client timer resets on **`@ticker` JSON** received on `WebSocketChannel.stream`. Binance server **ping frames** on `IOWebSocketChannel` are handled at the protocol layer and may **not** appear on `stream`; with subscriptions active, `@ticker` traffic (~1s) keeps the connection fresh. Tune `AppConfig.realtimeStaleAfter` (default **45s**) accordingly.
 
 ## Open choices for owner
 

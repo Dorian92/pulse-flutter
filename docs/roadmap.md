@@ -110,20 +110,24 @@ Delivery is split into **eight PRs** (one step each). Each PR should stay review
 
 **Scope**
 
-- Implement `PriceStreamService` + `RealtimeSubscriptionCoordinator`.
-- Integrate markets + watchlist blocs (watchlist UI may still be stub).
-- Throttle ~1s; reconnect with backoff; status stream.
-- `FakePriceStreamService` for tests.
+- Implement `PriceStreamService` + `RealtimeSubscriptionCoordinator` (see [plans/live-prices.md](plans/live-prices.md)).
+- Binance `/ws` with dynamic `SUBSCRIBE`/`UNSUBSCRIBE`; `@ticker` streams; EUR via live `EURUSDT`.
+- Integrate **MarketsBloc** (top-50 subscription policy); watchlist coordinator hook (UI may stay stub).
+- Throttle ~1s; reconnect with backoff + jitter; `RealtimeStatus` stream; background close ~30s.
+- `SymbolMapperLoader` from cached `exchangeInfo` (weight 20, rare refresh).
+- `FakePriceStreamService` + fake WebSocket channel for tests.
 
 **Acceptance criteria**
 
-- Visible rows update price without full list reload.
-- Disconnect shows degraded state; no crash on 24h cycle (simulated in test).
+- Visible rows update price without full list reload; live flash on change.
+- `LiveIndicator` reflects connection status; no live feed badge when mapper returns null.
+- Disconnect/degraded does not crash; 24h cycle simulated in unit test.
 
 **Tests**
 
-- Unit: throttle coalescing, subscribe diff, backoff timer (fake async).
+- Unit: throttle coalescing, subscribe diff, backoff (fake async), lifecycle timer, EUR conversion.
 - Bloc: tick merges into existing state.
+- Widget: live indicator + flash.
 
 ---
 

@@ -33,7 +33,7 @@ void main() {
   test('allows overrides after reset', () async {
     await resetDependencies();
     await HiveBoxes.openBoxes();
-    const custom = SymbolMapper(overrides: {'x': 'YUSDT'});
+    final custom = SymbolMapper(overrides: {'x': 'YUSDT'});
     await configureDependencies(symbolMapper: custom);
     expect(sl<SymbolMapper>().binanceUsdtSymbolFor(coinGeckoId: 'x'), 'YUSDT');
   });

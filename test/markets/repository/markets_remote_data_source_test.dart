@@ -15,7 +15,7 @@ void main() {
     final bitcoin = list.first as Map<String, dynamic>;
     final unknown = list.last as Map<String, dynamic>;
 
-    const mapper = SymbolMapper();
+    final mapper = SymbolMapper();
     final btc = parseMarketCoinFromApi(bitcoin, symbolMapper: mapper);
     expect(btc.id, 'bitcoin');
     expect(btc.sparkline7d, [90000, 91000, 95000]);

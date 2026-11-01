@@ -24,6 +24,6 @@ extension PumpPulse on WidgetTester {
 }
 
 Future<void> pumpPulseApp(WidgetTester tester) async {
-  await tester.pumpWidget(PulseApp());
+  await tester.pumpWidget(const PulseApp());
   await tester.pumpAndSettle();
 }

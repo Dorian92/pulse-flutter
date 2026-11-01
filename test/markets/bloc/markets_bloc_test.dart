@@ -3,14 +3,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pulse/core/error/app_failure.dart';
 import 'package:pulse/core/error/result.dart';
+import 'package:pulse/core/realtime/realtime_subscription_coordinator.dart';
+import 'package:pulse/core/realtime/symbol_mapper.dart';
 import 'package:pulse/core/widgets/filter_chips_row.dart';
 import 'package:pulse/markets/bloc/markets_bloc.dart';
 import 'package:pulse/markets/models/global_market_summary.dart';
 import 'package:pulse/markets/models/market_coin.dart';
 import 'package:pulse/markets/models/markets_snapshot.dart';
 import 'package:pulse/markets/repository/markets_repository.dart';
+import '../../core/realtime/fake_price_stream_service.dart';
 
 class MockMarketsRepository extends Mock implements MarketsRepository {}
+
+MarketsBloc _buildBloc(MockMarketsRepository repository) {
+  final fakeStream = FakePriceStreamService();
+  final coordinator = RealtimeSubscriptionCoordinator(fakeStream);
+  final mapper = SymbolMapper();
+  return MarketsBloc(
+    repository: repository,
+    subscriptionCoordinator: coordinator,
+    priceStreamService: fakeStream,
+    symbolMapper: mapper,
+  );
+}
 
 MarketsSnapshot _snapshot() {
   return MarketsSnapshot(
@@ -57,7 +72,7 @@ void main() {
       when(
         () => repository.loadMarkets(),
       ).thenAnswer((_) async => Success(_snapshot()));
-      return MarketsBloc(repository: repository);
+      return _buildBloc(repository);
     },
     act: (bloc) => bloc.add(const MarketsRequested()),
     expect: () => [
@@ -78,7 +93,7 @@ void main() {
       when(
         () => repository.loadMarkets(),
       ).thenAnswer((_) async => const Failure(NetworkFailure(offline: true)));
-      return MarketsBloc(repository: repository);
+      return _buildBloc(repository);
     },
     act: (bloc) => bloc.add(const MarketsRequested()),
     expect: () => [
@@ -101,7 +116,7 @@ void main() {
       when(
         () => repository.loadMarkets(),
       ).thenAnswer((_) async => Success(_snapshot()));
-      return MarketsBloc(repository: repository);
+      return _buildBloc(repository);
     },
     act: (bloc) async {
       bloc.add(const MarketsRequested());
@@ -121,7 +136,7 @@ void main() {
       when(
         () => repository.loadMarkets(),
       ).thenAnswer((_) async => Success(_snapshot()));
-      return MarketsBloc(repository: repository);
+      return _buildBloc(repository);
     },
     seed: () => MarketsState.loaded(
       snapshot: _snapshot(),
@@ -145,7 +160,7 @@ void main() {
           refreshError: const RateLimitFailure(retryAfterSeconds: 12),
         ),
       );
-      return MarketsBloc(repository: repository);
+      return _buildBloc(repository);
     },
     seed: () => MarketsState.loaded(
       snapshot: _snapshot(),
@@ -174,7 +189,7 @@ void main() {
       when(
         () => repository.refreshMarkets(),
       ).thenAnswer((_) async => const Failure(ServerFailure(statusCode: 503)));
-      return MarketsBloc(repository: repository);
+      return _buildBloc(repository);
     },
     seed: () => MarketsState.loaded(
       snapshot: _snapshot(),
