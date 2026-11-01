@@ -279,10 +279,10 @@ Pulse keeps network out of the default test path. Production code uses construct
 | Repository | `test/**/repository/**` | Mock remote + real or in-memory Hive cache |
 | Bloc | `test/**/bloc/**` | `bloc_test` happy path + failure |
 | Widget | `test/**/ui/**` | Mock blocs or `initPulseTestDependencies()` |
-| Integration | `integration_test/` | Full `PulseApp` navigation with stub repositories (no live HTTP/WS) |
+| Integration-style | `test/pulse_happy_path_test.dart` | Router flow with mocked blocs (see `integration_test/README.md`) |
 | Visual fixtures | `tool/screenshot_capture_test.dart` | Tagged `screenshots`; writes PNGs for README / demo |
 
-**Running:** `flutter test --coverage` (CI) and `flutter test integration_test`. Live CoinGecko/Binance are optional manual checks with `--dart-define=COINGECKO_DEMO_API_KEY=...` — not required for CI.
+**Running:** `flutter test --coverage` (CI). Live CoinGecko/Binance are optional manual checks with `--dart-define=COINGECKO_DEMO_API_KEY=...` — not required for CI.
 
 **Offline / stale UX:** When `ConnectivityService` reports offline or remote refresh fails, repositories prefer `readStale` and return `Success` with `isStale: true` (and optional `refreshError`). UI shows `OfflineBanner` / stale copy from l10n while still rendering cached rows.
 

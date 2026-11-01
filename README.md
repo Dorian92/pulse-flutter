@@ -36,7 +36,7 @@ More frames: `docs/screenshots/` (Serbian locale, design gallery scroll, etc.).
 - **Storage:** Hive (`CacheStore`, preferences, watchlist)
 - **Charts:** `fl_chart`
 - **L10n:** ARB (`en`, `sr_Latn`)
-- **Tests:** `flutter_test`, `bloc_test`, `mocktail`, `integration_test`
+- **Tests:** `flutter_test`, `bloc_test`, `mocktail`; end-to-end flow in `test/pulse_happy_path_test.dart`
 
 ## Architecture (overview)
 
@@ -74,13 +74,12 @@ Binance read-only market endpoints do not require a key.
 
 ## Test & coverage
 
-Default CI and local runs use **fakes**—no live Binance or CoinGecko.
+Default CI and local runs use **fakes**—no live Binance or CoinGecko. The markets → coin detail → watchlist happy path lives in `test/app_router_test.dart`.
 
 ```bash
 dart format lib test integration_test tool
 flutter analyze
 flutter test --coverage
-flutter test integration_test -d linux
 bash tool/check_generated.sh
 ```
 
@@ -98,8 +97,7 @@ lib/
   watchlist/     # persistence + UI
   settings/      # theme, locale, currency
   shell/         # bottom navigation
-test/            # unit, bloc, widget tests (+ fakes)
-integration_test/ # end-to-end flows with test DI
+test/            # unit, bloc, widget, and app-router flow tests
 tool/            # screenshot harness, demo stitch, codegen checks
 docs/            # architecture, roadmap, screenshots, demo
 ```
