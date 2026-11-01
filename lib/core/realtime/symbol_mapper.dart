@@ -9,7 +9,6 @@ class SymbolMapper {
   static const Map<String, String> _knownIds = {
     'bitcoin': 'BTCUSDT',
     'ethereum': 'ETHUSDT',
-    'tether': 'USDTUSDT',
     'binancecoin': 'BNBUSDT',
     'solana': 'SOLUSDT',
     'ripple': 'XRPUSDT',
