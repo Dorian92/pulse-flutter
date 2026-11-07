@@ -25,7 +25,7 @@ dependencies:
   intl: any
   package_info_plus: ^9.0.0
   stream_channel: ^2.1.4
-  url_launcher: ^6.3.2
+  url_launcher: ^6.3.3
   web_socket_channel: ^3.0.3
 
 dev_dependencies:
